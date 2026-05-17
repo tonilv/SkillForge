@@ -10,7 +10,7 @@ router.use(authMiddleware, adminMiddleware);
 router.get('/users', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, display_name, is_admin, totp_enabled, is_active, created_at FROM users ORDER BY created_at ASC'
+      'SELECT id, email, display_name, is_admin, totp_enabled, is_active, must_change_password, created_at FROM users ORDER BY created_at ASC'
     );
     res.json({ users: result.rows });
   } catch (err) {
@@ -29,7 +29,7 @@ router.post('/users', async (req, res) => {
   try {
     const hash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      'INSERT INTO users (email, password_hash, display_name, is_admin) VALUES ($1, $2, $3, $4) RETURNING id, email, display_name, is_admin, totp_enabled, is_active, created_at',
+      'INSERT INTO users (email, password_hash, display_name, is_admin, must_change_password) VALUES ($1, $2, $3, $4, TRUE) RETURNING id, email, display_name, is_admin, totp_enabled, is_active, must_change_password, created_at',
       [email.toLowerCase().trim(), hash, displayName || email.split('@')[0], !!isAdmin]
     );
     res.json({ user: result.rows[0] });

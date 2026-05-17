@@ -2385,21 +2385,39 @@ function showAuthMainCard() {
   document.getElementById('auth-main-card').style.display = '';
   document.getElementById('auth-2fa-setup-card').style.display = 'none';
   document.getElementById('auth-2fa-verify-card').style.display = 'none';
+  document.getElementById('auth-change-password-card').style.display = 'none';
 }
 
 function show2FASetupCard() {
   document.getElementById('auth-main-card').style.display = 'none';
   document.getElementById('auth-2fa-setup-card').style.display = '';
   document.getElementById('auth-2fa-verify-card').style.display = 'none';
+  document.getElementById('auth-change-password-card').style.display = 'none';
 }
 
 function show2FAVerifyCard() {
   document.getElementById('auth-main-card').style.display = 'none';
   document.getElementById('auth-2fa-setup-card').style.display = 'none';
   document.getElementById('auth-2fa-verify-card').style.display = '';
+  document.getElementById('auth-change-password-card').style.display = 'none';
   document.getElementById('auth-verify-code').value = '';
   document.getElementById('auth-verify-error').style.display = 'none';
   setTimeout(() => document.getElementById('auth-verify-code').focus(), 100);
+}
+
+function showChangePasswordCard() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.querySelector('.app-header').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  document.querySelector('.app-footer').style.display = 'none';
+  document.getElementById('auth-main-card').style.display = 'none';
+  document.getElementById('auth-2fa-setup-card').style.display = 'none';
+  document.getElementById('auth-2fa-verify-card').style.display = 'none';
+  document.getElementById('auth-change-password-card').style.display = '';
+  document.getElementById('auth-new-password').value = '';
+  document.getElementById('auth-new-password2').value = '';
+  document.getElementById('auth-change-pw-error').style.display = 'none';
+  setTimeout(() => document.getElementById('auth-new-password').focus(), 100);
 }
 
 function showApp() {
@@ -2429,8 +2447,52 @@ async function completeLogin(data) {
   currentUser = data.user;
   pendingPreToken = null;
   await loadAllUserData();
-  showApp();
-  renderPortal();
+  if (currentUser.must_change_password) {
+    showChangePasswordCard();
+  } else {
+    showApp();
+    renderPortal();
+  }
+}
+
+async function handleChangePassword() {
+  const newPassword = document.getElementById('auth-new-password').value;
+  const newPassword2 = document.getElementById('auth-new-password2').value;
+  const errorEl = document.getElementById('auth-change-pw-error');
+  errorEl.style.display = 'none';
+
+  if (!newPassword || newPassword.length < 6) {
+    errorEl.textContent = 'La contraseña debe tener al menos 6 caracteres';
+    errorEl.style.display = '';
+    return;
+  }
+  if (newPassword !== newPassword2) {
+    errorEl.textContent = 'Las contraseñas no coinciden';
+    errorEl.style.display = '';
+    return;
+  }
+
+  const btn = document.querySelector('#auth-change-password-card .auth-submit');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    const data = await API.changePassword(newPassword);
+    if (data.error) {
+      errorEl.textContent = data.error;
+      errorEl.style.display = '';
+      return;
+    }
+    currentUser.must_change_password = false;
+    showApp();
+    renderPortal();
+  } catch {
+    errorEl.textContent = 'Error al conectar con el servidor.';
+    errorEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Cambiar contraseña y entrar';
+  }
 }
 
 async function handleLogin() {
@@ -2808,8 +2870,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (error) { showAuthScreen(); return; }
     currentUser = user;
     await loadAllUserData();
-    showApp();
-    renderPortal();
+    if (currentUser.must_change_password) {
+      showChangePasswordCard();
+    } else {
+      showApp();
+      renderPortal();
+    }
   } catch {
     showAuthScreen();
   }

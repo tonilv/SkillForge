@@ -65,6 +65,7 @@ const API = {
   get2FASetup: (preToken) => preAuthReq('GET', '/auth/2fa/setup', preToken),
   enable2FA: (code, preToken) => preAuthReq('POST', '/auth/2fa/enable', preToken, { code }),
   verify2FA: (code, preToken) => preAuthReq('POST', '/auth/2fa/verify', preToken, { code }),
+  changePassword: (newPassword) => apiReq('POST', '/auth/change-password', { newPassword }),
 
   getProgress: (certKey) => apiReq('GET', `/data/progress/${certKey}`),
   saveProgress: (certKey, data) => apiReq('POST', `/data/progress/${certKey}`, data),

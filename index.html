@@ -12,45 +12,37 @@
   <!-- ── Pantalla de autenticación ─────────────────────────────────────────── -->
   <div id="auth-screen" class="auth-overlay">
 
-    <!-- Login / Register card -->
+    <!-- Login card -->
     <div id="auth-main-card" class="auth-card">
       <div class="auth-brand">
         <h1 class="app-title">SkillForge</h1>
         <p class="app-subtitle">Portal de preparación para certificaciones técnicas</p>
       </div>
-
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Iniciar sesión</button>
-        <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Registrarse</button>
+      <div class="form-group">
+        <input type="email" id="auth-email" class="form-input" placeholder="Correo electrónico" autocomplete="email" onkeydown="if(event.key==='Enter')handleLogin()" />
       </div>
-
-      <div id="auth-login-form">
-        <div class="form-group">
-          <input type="email" id="auth-email" class="form-input" placeholder="Correo electrónico" autocomplete="email" onkeydown="if(event.key==='Enter')handleLogin()" />
-        </div>
-        <div class="form-group">
-          <input type="password" id="auth-password" class="form-input" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()" />
-        </div>
-        <div id="auth-error" class="auth-error" style="display:none;"></div>
-        <button class="btn btn-primary auth-submit" onclick="handleLogin()">Entrar</button>
+      <div class="form-group">
+        <input type="password" id="auth-password" class="form-input" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()" />
       </div>
+      <div id="auth-error" class="auth-error" style="display:none;"></div>
+      <button class="btn btn-primary auth-submit" onclick="handleLogin()">Entrar</button>
+    </div>
 
-      <div id="auth-register-form" style="display:none;">
-        <div class="form-group">
-          <input type="text" id="auth-name" class="form-input" placeholder="Nombre (opcional)" autocomplete="name" />
-        </div>
-        <div class="form-group">
-          <input type="email" id="auth-reg-email" class="form-input" placeholder="Correo electrónico" autocomplete="email" onkeydown="if(event.key==='Enter')handleRegister()" />
-        </div>
-        <div class="form-group">
-          <input type="password" id="auth-reg-password" class="form-input" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleRegister()" />
-        </div>
-        <div class="form-group">
-          <input type="password" id="auth-reg-password2" class="form-input" placeholder="Confirmar contraseña" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleRegister()" />
-        </div>
-        <div id="auth-reg-error" class="auth-error" style="display:none;"></div>
-        <button class="btn btn-primary auth-submit" onclick="handleRegister()">Crear cuenta</button>
+    <!-- Forced password change card -->
+    <div id="auth-change-password-card" class="auth-card" style="display:none;">
+      <div class="auth-brand">
+        <div class="auth-2fa-icon">🔒</div>
+        <h2 class="auth-2fa-header">Cambio de contraseña obligatorio</h2>
+        <p class="app-subtitle">Tu cuenta tiene una contraseña temporal. Establece una nueva contraseña para continuar.</p>
       </div>
+      <div class="form-group" style="margin-top:1rem;">
+        <input type="password" id="auth-new-password" class="form-input" placeholder="Nueva contraseña (mín. 6 caracteres)" autocomplete="new-password" />
+      </div>
+      <div class="form-group">
+        <input type="password" id="auth-new-password2" class="form-input" placeholder="Confirmar nueva contraseña" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleChangePassword()" />
+      </div>
+      <div id="auth-change-pw-error" class="auth-error" style="display:none;"></div>
+      <button class="btn btn-primary auth-submit" onclick="handleChangePassword()">Cambiar contraseña y entrar</button>
     </div>
 
     <!-- 2FA Setup card (QR code) -->

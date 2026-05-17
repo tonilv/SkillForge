@@ -24,28 +24,19 @@ function makeFullToken(user) {
   );
 }
 
-router.post('/register', async (req, res) => {
-  const { email, password, displayName } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ error: 'Email y contraseña requeridos' });
-  if (password.length < 6)
-    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+function buildUser(row, id) {
+  return {
+    id: id || row.id,
+    email: row.email,
+    displayName: row.display_name,
+    is_admin: row.is_admin,
+    must_change_password: row.must_change_password || false,
+  };
+}
 
-  try {
-    const hash = await bcrypt.hash(password, 10);
-    const result = await pool.query(
-      'INSERT INTO users (email, password_hash, display_name) VALUES ($1, $2, $3) RETURNING id, email, display_name, is_admin',
-      [email.toLowerCase().trim(), hash, displayName || email.split('@')[0]]
-    );
-    const user = result.rows[0];
-    // New users must set up 2FA before getting a full token
-    res.json({ needsSetup: true, preToken: makePreAuthToken(user) });
-  } catch (err) {
-    if (err.code === '23505')
-      return res.status(409).json({ error: 'Ya existe una cuenta con ese email' });
-    console.error(err);
-    res.status(500).json({ error: 'Error al crear la cuenta' });
-  }
+// Public registration disabled — admin creates users via /api/admin/users
+router.post('/register', (req, res) => {
+  res.status(403).json({ error: 'El registro público está desactivado. Contacta con el administrador.' });
 });
 
 router.post('/login', async (req, res) => {
@@ -69,11 +60,9 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email o contraseña incorrectos' });
 
     if (!user.totp_enabled) {
-      // 2FA not set up yet — send pre-auth token so they can set it up
       return res.json({ needsSetup: true, preToken: makePreAuthToken(user) });
     }
 
-    // 2FA set up — send pre-auth token for verification
     res.json({ requires2fa: true, preToken: makePreAuthToken(user) });
   } catch (err) {
     console.error(err);
@@ -91,12 +80,10 @@ router.get('/2fa/setup', preAuthMiddleware, async (req, res) => {
     const secret = authenticator.generateSecret();
     const otpauthUrl = authenticator.keyuri(user.email, 'SkillForge', secret);
 
-    // Save pending secret (not yet confirmed)
     await pool.query('UPDATE users SET totp_secret = $1 WHERE id = $2', [secret, req.user.id]);
 
     const qrDataUrl = await qrcode.toDataURL(otpauthUrl);
-
-    res.json({ qrDataUrl, manualCode: secret.base32 });
+    res.json({ qrDataUrl, manualCode: secret });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error generando 2FA' });
@@ -110,7 +97,7 @@ router.post('/2fa/enable', preAuthMiddleware, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT totp_secret, is_admin, email, display_name FROM users WHERE id = $1',
+      'SELECT totp_secret, is_admin, email, display_name, must_change_password FROM users WHERE id = $1',
       [req.user.id]
     );
     const user = result.rows[0];
@@ -118,12 +105,11 @@ router.post('/2fa/enable', preAuthMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Primero genera el código QR' });
 
     const valid = authenticator.verify({ token: code, secret: user.totp_secret });
-
     if (!valid) return res.status(400).json({ error: 'Código incorrecto' });
 
     await pool.query('UPDATE users SET totp_enabled = TRUE WHERE id = $1', [req.user.id]);
 
-    const fullUser = { id: req.user.id, email: user.email, displayName: user.display_name, is_admin: user.is_admin };
+    const fullUser = buildUser(user, req.user.id);
     res.json({ token: makeFullToken(fullUser), user: fullUser });
   } catch (err) {
     console.error(err);
@@ -138,7 +124,7 @@ router.post('/2fa/verify', preAuthMiddleware, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT totp_secret, totp_enabled, is_admin, email, display_name FROM users WHERE id = $1',
+      'SELECT totp_secret, totp_enabled, is_admin, email, display_name, must_change_password FROM users WHERE id = $1',
       [req.user.id]
     );
     const user = result.rows[0];
@@ -146,10 +132,9 @@ router.post('/2fa/verify', preAuthMiddleware, async (req, res) => {
       return res.status(400).json({ error: '2FA no configurado' });
 
     const valid = authenticator.verify({ token: code, secret: user.totp_secret });
-
     if (!valid) return res.status(401).json({ error: 'Código incorrecto' });
 
-    const fullUser = { id: req.user.id, email: user.email, displayName: user.display_name, is_admin: user.is_admin };
+    const fullUser = buildUser(user, req.user.id);
     res.json({ token: makeFullToken(fullUser), user: fullUser });
   } catch (err) {
     console.error(err);
@@ -157,16 +142,35 @@ router.post('/2fa/verify', preAuthMiddleware, async (req, res) => {
   }
 });
 
+// POST /api/auth/change-password — forced password change on first login
+router.post('/change-password', authMiddleware, async (req, res) => {
+  const { newPassword } = req.body;
+  if (!newPassword || newPassword.length < 6)
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+
+  try {
+    const hash = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      'UPDATE users SET password_hash = $1, must_change_password = FALSE WHERE id = $2',
+      [hash, req.user.id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al cambiar la contraseña' });
+  }
+});
+
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, display_name, is_admin FROM users WHERE id = $1',
+      'SELECT id, email, display_name, is_admin, must_change_password FROM users WHERE id = $1',
       [req.user.id]
     );
     if (!result.rows[0])
       return res.status(404).json({ error: 'Usuario no encontrado' });
     const u = result.rows[0];
-    res.json({ user: { id: u.id, email: u.email, displayName: u.display_name, is_admin: u.is_admin } });
+    res.json({ user: buildUser(u) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error' });
