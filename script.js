@@ -2371,11 +2371,35 @@ function renderAchievements() {
    AUTENTICACIÓN
    ============================================================ */
 
+let pendingPreToken = null;
+
 function showAuthScreen() {
   document.getElementById('auth-screen').style.display = 'flex';
   document.querySelector('.app-header').style.display = 'none';
   document.getElementById('app').style.display = 'none';
   document.querySelector('.app-footer').style.display = 'none';
+  showAuthMainCard();
+}
+
+function showAuthMainCard() {
+  document.getElementById('auth-main-card').style.display = '';
+  document.getElementById('auth-2fa-setup-card').style.display = 'none';
+  document.getElementById('auth-2fa-verify-card').style.display = 'none';
+}
+
+function show2FASetupCard() {
+  document.getElementById('auth-main-card').style.display = 'none';
+  document.getElementById('auth-2fa-setup-card').style.display = '';
+  document.getElementById('auth-2fa-verify-card').style.display = 'none';
+}
+
+function show2FAVerifyCard() {
+  document.getElementById('auth-main-card').style.display = 'none';
+  document.getElementById('auth-2fa-setup-card').style.display = 'none';
+  document.getElementById('auth-2fa-verify-card').style.display = '';
+  document.getElementById('auth-verify-code').value = '';
+  document.getElementById('auth-verify-error').style.display = 'none';
+  setTimeout(() => document.getElementById('auth-verify-code').focus(), 100);
 }
 
 function showApp() {
@@ -2387,6 +2411,8 @@ function showApp() {
   if (currentUser && userEl) {
     userEl.textContent = currentUser.displayName || currentUser.email;
   }
+  const adminBtn = document.getElementById('admin-btn');
+  if (adminBtn) adminBtn.style.display = currentUser && currentUser.is_admin ? '' : 'none';
 }
 
 function switchAuthTab(tab) {
@@ -2396,6 +2422,15 @@ function switchAuthTab(tab) {
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
   document.getElementById('auth-error').style.display = 'none';
   document.getElementById('auth-reg-error').style.display = 'none';
+}
+
+async function completeLogin(data) {
+  setToken(data.token);
+  currentUser = data.user;
+  pendingPreToken = null;
+  await loadAllUserData();
+  showApp();
+  renderPortal();
 }
 
 async function handleLogin() {
@@ -2421,11 +2456,13 @@ async function handleLogin() {
       errorEl.style.display = '';
       return;
     }
-    setToken(data.token);
-    currentUser = data.user;
-    await loadAllUserData();
-    showApp();
-    renderPortal();
+    pendingPreToken = data.preToken;
+    if (data.needsSetup) {
+      await load2FASetup();
+      show2FASetupCard();
+    } else if (data.requires2fa) {
+      show2FAVerifyCard();
+    }
   } catch {
     errorEl.textContent = 'Error al conectar con el servidor.';
     errorEl.style.display = '';
@@ -2466,11 +2503,9 @@ async function handleRegister() {
       errorEl.style.display = '';
       return;
     }
-    setToken(data.token);
-    currentUser = data.user;
-    await loadAllUserData();
-    showApp();
-    renderPortal();
+    pendingPreToken = data.preToken;
+    await load2FASetup();
+    show2FASetupCard();
   } catch {
     errorEl.textContent = 'Error al conectar con el servidor.';
     errorEl.style.display = '';
@@ -2480,9 +2515,86 @@ async function handleRegister() {
   }
 }
 
+async function load2FASetup() {
+  document.getElementById('auth-qr-img').src = '';
+  document.getElementById('auth-manual-code').textContent = 'Cargando...';
+  document.getElementById('auth-setup-code').value = '';
+  document.getElementById('auth-setup-error').style.display = 'none';
+
+  const data = await API.get2FASetup(pendingPreToken);
+  if (data.qrDataUrl) document.getElementById('auth-qr-img').src = data.qrDataUrl;
+  if (data.manualCode) document.getElementById('auth-manual-code').textContent = data.manualCode;
+  setTimeout(() => document.getElementById('auth-setup-code').focus(), 300);
+}
+
+async function handleEnable2FA() {
+  const code = document.getElementById('auth-setup-code').value.trim();
+  const errorEl = document.getElementById('auth-setup-error');
+  errorEl.style.display = 'none';
+
+  if (!code || code.length !== 6) {
+    errorEl.textContent = 'Introduce el código de 6 dígitos';
+    errorEl.style.display = '';
+    return;
+  }
+
+  const btn = document.querySelector('#auth-2fa-setup-card .auth-submit');
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    const data = await API.enable2FA(code, pendingPreToken);
+    if (data.error) {
+      errorEl.textContent = data.error;
+      errorEl.style.display = '';
+      return;
+    }
+    await completeLogin(data);
+  } catch {
+    errorEl.textContent = 'Error al conectar con el servidor.';
+    errorEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Activar 2FA y entrar';
+  }
+}
+
+async function handleVerify2FA() {
+  const code = document.getElementById('auth-verify-code').value.trim();
+  const errorEl = document.getElementById('auth-verify-error');
+  errorEl.style.display = 'none';
+
+  if (!code || code.length !== 6) {
+    errorEl.textContent = 'Introduce el código de 6 dígitos';
+    errorEl.style.display = '';
+    return;
+  }
+
+  const btn = document.querySelector('#auth-2fa-verify-card .auth-submit');
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    const data = await API.verify2FA(code, pendingPreToken);
+    if (data.error) {
+      errorEl.textContent = data.error;
+      errorEl.style.display = '';
+      return;
+    }
+    await completeLogin(data);
+  } catch {
+    errorEl.textContent = 'Error al conectar con el servidor.';
+    errorEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Verificar';
+  }
+}
+
 function handleLogout() {
   clearToken();
   currentUser = null;
+  pendingPreToken = null;
   progressCache = {};
   questionNotes = {};
   srsData = {};
@@ -2539,6 +2651,142 @@ async function loadAllUserData() {
   progressResults.forEach(([k, d]) => {
     if (d) progressCache[k] = d;
   });
+}
+
+/* ============================================================
+   PANEL DE ADMINISTRACIÓN
+   ============================================================ */
+
+async function renderAdminPanel() {
+  const app = document.getElementById('app');
+  app.innerHTML = '<div class="admin-card"><p>Cargando usuarios...</p></div>';
+
+  let users = [];
+  try {
+    const data = await API.getUsers();
+    if (data.error) { app.innerHTML = `<div class="admin-card"><p class="auth-error">${data.error}</p></div>`; return; }
+    users = data.users;
+  } catch {
+    app.innerHTML = '<div class="admin-card"><p class="auth-error">Error al cargar usuarios.</p></div>';
+    return;
+  }
+
+  app.innerHTML = `
+    <div class="admin-card">
+      <h2>Gestión de usuarios</h2>
+
+      <div class="admin-create-form">
+        <h3>Crear nuevo usuario</h3>
+        <div class="form-group">
+          <input type="email" id="new-user-email" class="form-input" placeholder="Email" />
+        </div>
+        <div class="form-group">
+          <input type="password" id="new-user-password" class="form-input" placeholder="Contraseña (mín. 6 caracteres)" />
+        </div>
+        <div class="form-group">
+          <input type="text" id="new-user-name" class="form-input" placeholder="Nombre (opcional)" />
+        </div>
+        <label class="admin-check-label">
+          <input type="checkbox" id="new-user-admin" /> Administrador
+        </label>
+        <div id="admin-create-error" class="auth-error" style="display:none;"></div>
+        <div id="admin-create-ok" class="auth-success" style="display:none;">Usuario creado. Deberá configurar 2FA al primer inicio de sesión.</div>
+        <button class="btn btn-primary" onclick="adminCreateUser()">Crear usuario</button>
+      </div>
+
+      <div class="admin-table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Nombre</th>
+              <th>Admin</th>
+              <th>2FA</th>
+              <th>Activo</th>
+              <th>Creado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="admin-users-tbody">
+            ${users.map(u => adminUserRow(u)).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="admin-actions">
+        <button class="btn" onclick="renderPortal()">← Volver al portal</button>
+      </div>
+    </div>
+  `;
+}
+
+function adminUserRow(u) {
+  const isMe = currentUser && u.id === currentUser.id;
+  return `
+    <tr id="admin-row-${u.id}">
+      <td>${escapeHtml(u.email)}</td>
+      <td>${escapeHtml(u.display_name || '')}</td>
+      <td>${u.is_admin ? '✅' : '—'}</td>
+      <td>${u.totp_enabled ? '✅' : '❌'}</td>
+      <td>${u.is_active ? '✅' : '❌'}</td>
+      <td>${new Date(u.created_at).toLocaleDateString('es-ES')}</td>
+      <td class="admin-row-actions">
+        ${!u.totp_enabled ? `<button class="btn btn-xs" onclick="adminReset2FA(${u.id})" title="Resetear 2FA">Reset 2FA</button>` : `<button class="btn btn-xs" onclick="adminReset2FA(${u.id})" title="Resetear 2FA">Reset 2FA</button>`}
+        ${!isMe ? `<button class="btn btn-xs" onclick="adminToggleActive(${u.id}, ${!u.is_active})">${u.is_active ? 'Desactivar' : 'Activar'}</button>` : ''}
+        ${!isMe ? `<button class="btn btn-xs btn-danger" onclick="adminDeleteUser(${u.id}, '${escapeHtml(u.email)}')">Eliminar</button>` : ''}
+      </td>
+    </tr>
+  `;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function adminCreateUser() {
+  const email = document.getElementById('new-user-email').value.trim();
+  const password = document.getElementById('new-user-password').value;
+  const displayName = document.getElementById('new-user-name').value.trim();
+  const isAdmin = document.getElementById('new-user-admin').checked;
+  const errorEl = document.getElementById('admin-create-error');
+  const okEl = document.getElementById('admin-create-ok');
+  errorEl.style.display = 'none';
+  okEl.style.display = 'none';
+
+  if (!email || !password) { errorEl.textContent = 'Email y contraseña requeridos'; errorEl.style.display = ''; return; }
+
+  const data = await API.createUser({ email, password, displayName, isAdmin });
+  if (data.error) { errorEl.textContent = data.error; errorEl.style.display = ''; return; }
+
+  okEl.style.display = '';
+  document.getElementById('new-user-email').value = '';
+  document.getElementById('new-user-password').value = '';
+  document.getElementById('new-user-name').value = '';
+  document.getElementById('new-user-admin').checked = false;
+
+  const tbody = document.getElementById('admin-users-tbody');
+  tbody.insertAdjacentHTML('beforeend', adminUserRow(data.user));
+}
+
+async function adminReset2FA(id) {
+  if (!confirm('¿Resetear el 2FA de este usuario? Deberá configurarlo de nuevo al iniciar sesión.')) return;
+  const data = await API.resetUser2FA(id);
+  if (data.error) { alert(data.error); return; }
+  await renderAdminPanel();
+}
+
+async function adminToggleActive(id, newActive) {
+  const data = await API.updateUser(id, { isActive: newActive });
+  if (data.error) { alert(data.error); return; }
+  await renderAdminPanel();
+}
+
+async function adminDeleteUser(id, email) {
+  if (!confirm(`¿Eliminar el usuario "${email}"? Esta acción no se puede deshacer.`)) return;
+  const data = await API.deleteUser(id);
+  if (data.error) { alert(data.error); return; }
+  const row = document.getElementById(`admin-row-${id}`);
+  if (row) row.remove();
 }
 
 /* ============================================================

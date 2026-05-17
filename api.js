@@ -1,5 +1,4 @@
-// api.js - Cliente HTTP para CertPrep
-// Proporciona el objeto API usado por script.js y ai-config.js
+// api.js - Cliente HTTP para SkillForge
 
 let currentUser = null;
 let onAuthError = null;
@@ -39,6 +38,21 @@ async function apiReq(method, path, body) {
   return data;
 }
 
+async function preAuthReq(method, path, preToken, body) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${preToken}`,
+  };
+
+  const res = await fetch(`/api${path}`, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  return res.json();
+}
+
 const API = {
   register: (email, password, displayName) =>
     apiReq('POST', '/auth/register', { email, password, displayName }),
@@ -47,6 +61,10 @@ const API = {
     apiReq('POST', '/auth/login', { email, password }),
 
   me: () => apiReq('GET', '/auth/me'),
+
+  get2FASetup: (preToken) => preAuthReq('GET', '/auth/2fa/setup', preToken),
+  enable2FA: (code, preToken) => preAuthReq('POST', '/auth/2fa/enable', preToken, { code }),
+  verify2FA: (code, preToken) => preAuthReq('POST', '/auth/2fa/verify', preToken, { code }),
 
   getProgress: (certKey) => apiReq('GET', `/data/progress/${certKey}`),
   saveProgress: (certKey, data) => apiReq('POST', `/data/progress/${certKey}`, data),
@@ -66,4 +84,11 @@ const API = {
   saveAiConfig: (config) => apiReq('POST', '/data/aiconfig', { config }),
 
   getContent: () => apiReq('GET', '/content'),
+
+  // Admin
+  getUsers: () => apiReq('GET', '/admin/users'),
+  createUser: (data) => apiReq('POST', '/admin/users', data),
+  updateUser: (id, data) => apiReq('PATCH', `/admin/users/${id}`, data),
+  deleteUser: (id) => apiReq('DELETE', `/admin/users/${id}`),
+  resetUser2FA: (id) => apiReq('POST', `/admin/users/${id}/reset-2fa`),
 };

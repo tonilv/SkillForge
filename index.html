@@ -11,7 +11,9 @@
 
   <!-- ── Pantalla de autenticación ─────────────────────────────────────────── -->
   <div id="auth-screen" class="auth-overlay">
-    <div class="auth-card">
+
+    <!-- Login / Register card -->
+    <div id="auth-main-card" class="auth-card">
       <div class="auth-brand">
         <h1 class="app-title">SkillForge</h1>
         <p class="app-subtitle">Portal de preparación para certificaciones técnicas</p>
@@ -50,6 +52,42 @@
         <button class="btn btn-primary auth-submit" onclick="handleRegister()">Crear cuenta</button>
       </div>
     </div>
+
+    <!-- 2FA Setup card (QR code) -->
+    <div id="auth-2fa-setup-card" class="auth-card" style="display:none;">
+      <div class="auth-brand">
+        <div class="auth-2fa-icon">🔐</div>
+        <h2 class="auth-2fa-header">Configurar autenticación en dos pasos</h2>
+        <p class="app-subtitle">Escanea el código QR con Google Authenticator u otra app compatible</p>
+      </div>
+      <div class="auth-qr-container">
+        <img id="auth-qr-img" class="auth-qr-img" src="" alt="Código QR 2FA" />
+      </div>
+      <p class="auth-manual-label">O introduce el código manualmente:</p>
+      <div class="auth-manual-code" id="auth-manual-code"></div>
+      <p class="auth-manual-label" style="margin-top:1rem;">Introduce el código de 6 dígitos para confirmar:</p>
+      <div class="form-group">
+        <input type="text" id="auth-setup-code" class="form-input totp-input" placeholder="000000" maxlength="6" inputmode="numeric" onkeydown="if(event.key==='Enter')handleEnable2FA()" />
+      </div>
+      <div id="auth-setup-error" class="auth-error" style="display:none;"></div>
+      <button class="btn btn-primary auth-submit" onclick="handleEnable2FA()">Activar 2FA y entrar</button>
+    </div>
+
+    <!-- 2FA Verify card (login) -->
+    <div id="auth-2fa-verify-card" class="auth-card" style="display:none;">
+      <div class="auth-brand">
+        <div class="auth-2fa-icon">🔑</div>
+        <h2 class="auth-2fa-header">Verificación en dos pasos</h2>
+        <p class="app-subtitle">Introduce el código de tu app de autenticación</p>
+      </div>
+      <div class="form-group" style="margin-top:1rem;">
+        <input type="text" id="auth-verify-code" class="form-input totp-input" placeholder="000000" maxlength="6" inputmode="numeric" onkeydown="if(event.key==='Enter')handleVerify2FA()" />
+      </div>
+      <div id="auth-verify-error" class="auth-error" style="display:none;"></div>
+      <button class="btn btn-primary auth-submit" onclick="handleVerify2FA()">Verificar</button>
+      <button class="btn auth-back-btn" onclick="showAuthMainCard()">← Volver</button>
+    </div>
+
   </div>
 
   <!-- ── App principal ──────────────────────────────────────────────────────── -->
@@ -61,6 +99,7 @@
       </div>
       <div class="header-actions">
         <span id="header-user" class="header-username"></span>
+        <button class="header-btn" id="admin-btn" onclick="renderAdminPanel()" aria-label="Panel de administración" title="Panel de administración" style="display:none;">👑</button>
         <button class="header-btn" id="logout-btn" onclick="handleLogout()" aria-label="Cerrar sesión" title="Cerrar sesión">↩</button>
         <button class="header-btn" id="config-btn" onclick="renderConfigPanel()" aria-label="Configuración IA" title="Configuración IA">⚙️</button>
         <button class="theme-toggle" id="theme-toggle" onclick="toggleDarkMode()" aria-label="Cambiar tema">🌙</button>

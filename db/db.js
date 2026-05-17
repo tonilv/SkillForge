@@ -18,6 +18,10 @@ async function initSchema() {
       email VARCHAR(255) UNIQUE NOT NULL,
       password_hash VARCHAR(255) NOT NULL,
       display_name VARCHAR(100),
+      is_admin BOOLEAN DEFAULT FALSE,
+      totp_secret VARCHAR(100),
+      totp_enabled BOOLEAN DEFAULT FALSE,
+      is_active BOOLEAN DEFAULT TRUE,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
@@ -76,6 +80,14 @@ async function initSchema() {
       sort_order INTEGER DEFAULT 0,
       PRIMARY KEY (provider_id, id)
     );
+  `);
+
+  // Add new columns to existing databases
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret VARCHAR(100);
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT FALSE;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
   `);
 }
 

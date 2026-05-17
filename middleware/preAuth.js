@@ -9,8 +9,7 @@ module.exports = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.pre_auth) return res.status(401).json({ error: 'Autenticación incompleta' });
-    if (!decoded.mfa) return res.status(401).json({ error: 'Se requiere verificación 2FA' });
+    if (!decoded.pre_auth) return res.status(401).json({ error: 'Token inválido' });
     req.user = decoded;
     next();
   } catch {

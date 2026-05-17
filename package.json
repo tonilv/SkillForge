@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "migrate": "node db/migrate.js"
+    "migrate": "node db/migrate.js",
+    "seed-admin": "node db/seed-admin.js"
   },
   "engines": {
     "node": ">=18"
@@ -15,6 +16,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.11.5"
+    "pg": "^8.11.5",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0"
   }
 }
