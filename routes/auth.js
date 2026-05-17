@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const speakeasy = require('speakeasy');
+const { authenticator } = require('otplib');
 const qrcode = require('qrcode');
 const { pool } = require('../db/db');
 const authMiddleware = require('../middleware/auth');
@@ -88,18 +88,13 @@ router.get('/2fa/setup', preAuthMiddleware, async (req, res) => {
     const user = result.rows[0];
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    const secret = speakeasy.generateSecret({
-      name: `SkillForge (${user.email})`,
-      issuer: 'SkillForge',
-    });
+    const secret = authenticator.generateSecret();
+    const otpauthUrl = authenticator.keyuri(user.email, 'SkillForge', secret);
 
     // Save pending secret (not yet confirmed)
-    await pool.query('UPDATE users SET totp_secret = $1 WHERE id = $2', [
-      secret.base32,
-      req.user.id,
-    ]);
+    await pool.query('UPDATE users SET totp_secret = $1 WHERE id = $2', [secret, req.user.id]);
 
-    const qrDataUrl = await qrcode.toDataURL(secret.otpauth_url);
+    const qrDataUrl = await qrcode.toDataURL(otpauthUrl);
 
     res.json({ qrDataUrl, manualCode: secret.base32 });
   } catch (err) {
@@ -122,12 +117,7 @@ router.post('/2fa/enable', preAuthMiddleware, async (req, res) => {
     if (!user || !user.totp_secret)
       return res.status(400).json({ error: 'Primero genera el código QR' });
 
-    const valid = speakeasy.totp.verify({
-      secret: user.totp_secret,
-      encoding: 'base32',
-      token: code,
-      window: 1,
-    });
+    const valid = authenticator.verify({ token: code, secret: user.totp_secret });
 
     if (!valid) return res.status(400).json({ error: 'Código incorrecto' });
 
@@ -155,12 +145,7 @@ router.post('/2fa/verify', preAuthMiddleware, async (req, res) => {
     if (!user || !user.totp_enabled)
       return res.status(400).json({ error: '2FA no configurado' });
 
-    const valid = speakeasy.totp.verify({
-      secret: user.totp_secret,
-      encoding: 'base32',
-      token: code,
-      window: 1,
-    });
+    const valid = authenticator.verify({ token: code, secret: user.totp_secret });
 
     if (!valid) return res.status(401).json({ error: 'Código incorrecto' });
 
