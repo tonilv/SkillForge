@@ -2431,6 +2431,8 @@ function showApp() {
   }
   const adminBtn = document.getElementById('admin-btn');
   if (adminBtn) adminBtn.style.display = currentUser && currentUser.is_admin ? '' : 'none';
+  const configBtn = document.getElementById('config-btn');
+  if (configBtn) configBtn.style.display = currentUser && currentUser.is_admin ? '' : 'none';
 }
 
 function switchAuthTab(tab) {
