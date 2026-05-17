@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Portal de preparación para certificaciones técnicas. Repasa preguntas tipo test, conceptos clave y realiza simulacros de examen.">
+  <title>CertPrep - Portal de Certificaciones</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="container header-inner">
+      <div class="header-brand">
+        <h1 class="app-title">CertPrep</h1>
+        <p class="app-subtitle">Portal de preparación para certificaciones técnicas</p>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" id="config-btn" onclick="renderConfigPanel()" aria-label="Configuración IA" title="Configuración IA">⚙️</button>
+        <button class="theme-toggle" id="theme-toggle" onclick="toggleDarkMode()" aria-label="Cambiar tema">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="app" class="container">
+    <!-- Las diferentes pantallas se renderizan aquí desde script.js -->
+  </main>
+
+  <footer class="app-footer">
+    <div class="container">
+      <p>App educativa para preparación de certificaciones técnicas</p>
+    </div>
+  </footer>
+
+  <!-- Datos unificados de certificaciones (incluye compatibilidad con EX200) -->
+  <script src="data/certifications.js"></script>
+  <script src="ai-config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
