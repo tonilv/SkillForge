@@ -1,5 +1,5 @@
 {
-  "name": "certprep",
+  "name": "skillforge",
   "version": "1.0.0",
   "description": "Portal de preparación para certificaciones técnicas",
   "main": "server.js",

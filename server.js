@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 
 initSchema()
   .then(() => {
-    app.listen(PORT, () => console.log(`CertPrep running on :${PORT}`));
+    app.listen(PORT, () => console.log(`SkillForge running on :${PORT}`));
   })
   .catch(err => {
     console.error('Error inicializando base de datos:', err);

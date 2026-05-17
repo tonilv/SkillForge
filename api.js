@@ -5,15 +5,15 @@ let currentUser = null;
 let onAuthError = null;
 
 function getToken() {
-  return localStorage.getItem('certprep_token');
+  return localStorage.getItem('skillforge_token');
 }
 
 function setToken(token) {
-  localStorage.setItem('certprep_token', token);
+  localStorage.setItem('skillforge_token', token);
 }
 
 function clearToken() {
-  localStorage.removeItem('certprep_token');
+  localStorage.removeItem('skillforge_token');
 }
 
 async function apiReq(method, path, body) {

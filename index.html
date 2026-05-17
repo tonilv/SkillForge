@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Portal de preparación para certificaciones técnicas. Repasa preguntas tipo test, conceptos clave y realiza simulacros de examen.">
-  <title>CertPrep - Portal de Certificaciones</title>
+  <title>SkillForge - Portal de Certificaciones</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
   <div id="auth-screen" class="auth-overlay">
     <div class="auth-card">
       <div class="auth-brand">
-        <h1 class="app-title">CertPrep</h1>
+        <h1 class="app-title">SkillForge</h1>
         <p class="app-subtitle">Portal de preparación para certificaciones técnicas</p>
       </div>
 
@@ -43,6 +43,9 @@
         <div class="form-group">
           <input type="password" id="auth-reg-password" class="form-input" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleRegister()" />
         </div>
+        <div class="form-group">
+          <input type="password" id="auth-reg-password2" class="form-input" placeholder="Confirmar contraseña" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleRegister()" />
+        </div>
         <div id="auth-reg-error" class="auth-error" style="display:none;"></div>
         <button class="btn btn-primary auth-submit" onclick="handleRegister()">Crear cuenta</button>
       </div>
@@ -53,7 +56,7 @@
   <header class="app-header" style="display:none;">
     <div class="container header-inner">
       <div class="header-brand">
-        <h1 class="app-title">CertPrep</h1>
+        <h1 class="app-title">SkillForge</h1>
         <p class="app-subtitle">Portal de preparación para certificaciones técnicas</p>
       </div>
       <div class="header-actions">

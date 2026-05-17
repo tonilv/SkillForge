@@ -1,4 +1,4 @@
-# CertPrep - Portal de Certificaciones Técnicas
+# SkillForge - Portal de Certificaciones Técnicas
 
 Aplicación web educativa para preparar certificaciones técnicas mediante repaso de preguntas tipo test, simulacros de examen, escenarios prácticos y revisión de conceptos clave.
 

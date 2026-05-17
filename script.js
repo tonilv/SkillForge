@@ -317,14 +317,14 @@ function exportFullProgress() {
     history: sessionHistory,
     achievements: Object.fromEntries(Object.entries(achievements).map(([k, v]) => [k, { unlocked: v.unlocked }])),
     maxStreak,
-    theme: localStorage.getItem('certprep_theme'),
+    theme: localStorage.getItem('skillforge_theme'),
   };
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `certprep-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `skillforge-backup-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -365,7 +365,7 @@ function importFullProgress(file) {
 
 function initDarkMode() {
   // Aplica el tema guardado en localStorage para carga instantánea
-  const saved = localStorage.getItem('certprep_theme');
+  const saved = localStorage.getItem('skillforge_theme');
   if (saved === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
     const btn = document.getElementById('theme-toggle');
@@ -383,7 +383,7 @@ function applyTheme(theme) {
     html.removeAttribute('data-theme');
     if (btn) btn.textContent = '🌙';
   }
-  localStorage.setItem('certprep_theme', theme);
+  localStorage.setItem('skillforge_theme', theme);
 }
 
 function toggleDarkMode() {
@@ -2436,11 +2436,18 @@ async function handleRegister() {
   const name = document.getElementById('auth-name').value.trim();
   const email = document.getElementById('auth-reg-email').value.trim();
   const password = document.getElementById('auth-reg-password').value;
+  const password2 = document.getElementById('auth-reg-password2').value;
   const errorEl = document.getElementById('auth-reg-error');
   errorEl.style.display = 'none';
 
   if (!email || !password) {
     errorEl.textContent = 'Por favor, rellena el email y la contraseña';
+    errorEl.style.display = '';
+    return;
+  }
+
+  if (password !== password2) {
+    errorEl.textContent = 'Las contraseñas no coinciden';
     errorEl.style.display = '';
     return;
   }
