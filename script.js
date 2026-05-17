@@ -10,6 +10,9 @@
    ESTADO GLOBAL
    ============================================================ */
 
+// Datos de certificaciones cargados desde la API (antes estaban en data/certifications.js)
+let certifications = {};
+
 let appState = {
   mode: 'portal',
   sourceMode: 'portal',
@@ -2504,11 +2507,15 @@ function getAllCertKeys() {
 }
 
 async function loadAllUserData() {
+  // Primero cargamos el contenido para conocer las claves de cert
+  certifications = await API.getContent();
+
+  const certKeys = getAllCertKeys();
   const [enhanced, themeData, aiConfigData, ...progressResults] = await Promise.all([
     API.getEnhanced(),
     API.getTheme(),
     API.getAiConfig(),
-    ...getAllCertKeys().map(k => API.getProgress(k).then(d => [k, d])),
+    ...certKeys.map(k => API.getProgress(k).then(d => [k, d])),
   ]);
 
   if (enhanced.notes) questionNotes = enhanced.notes;

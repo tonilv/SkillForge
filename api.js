@@ -64,4 +64,6 @@ const API = {
 
   getAiConfig: () => apiReq('GET', '/data/aiconfig'),
   saveAiConfig: (config) => apiReq('POST', '/data/aiconfig', { config }),
+
+  getContent: () => apiReq('GET', '/content'),
 };

@@ -9,6 +9,7 @@ app.use(express.static(path.join(__dirname)));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/data', require('./routes/data'));
+app.use('/api/content', require('./routes/content'));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
