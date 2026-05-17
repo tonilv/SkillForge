@@ -59,14 +59,14 @@ router.post('/login', async (req, res) => {
     ]);
     const user = result.rows[0];
     if (!user)
-      return res.status(401).json({ error: 'Email o contraseña incorrectos' });
+      return res.status(400).json({ error: 'Email o contraseña incorrectos' });
 
     if (!user.is_active)
       return res.status(403).json({ error: 'Cuenta desactivada. Contacta con el administrador.' });
 
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid)
-      return res.status(401).json({ error: 'Email o contraseña incorrectos' });
+      return res.status(400).json({ error: 'Email o contraseña incorrectos' });
 
     if (!user.totp_enabled) {
       // 2FA not set up yet — send pre-auth token so they can set it up
