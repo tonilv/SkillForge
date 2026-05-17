@@ -89,21 +89,11 @@ function updateReviewSelectionUI() {
 }
 
 function loadAiConfig() {
-  try {
-    const raw = localStorage.getItem('certprep_aiconfig');
-    if (raw) {
-      const saved = JSON.parse(raw);
-      if (saved.ollama) aiConfig.ollama = { ...aiConfig.ollama, ...saved.ollama };
-      if (saved.openai) aiConfig.openai = { ...aiConfig.openai, ...saved.openai };
-      if (saved.claude) aiConfig.claude = { ...aiConfig.claude, ...saved.claude };
-    }
-  } catch {
-    // ignorar errores de parseo
-  }
+  // No-op: la config de IA se carga desde la API en loadAllUserData() al hacer login
 }
 
 function saveAiConfig() {
-  localStorage.setItem('certprep_aiconfig', JSON.stringify(aiConfig));
+  API.saveAiConfig(aiConfig).catch(err => console.error('Error guardando config IA:', err));
 }
 
 /* ============================================================

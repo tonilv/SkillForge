@@ -117,11 +117,13 @@ function getCertKey() {
 }
 
 /* ============================================================
-   LOCALSTORAGE / PERSISTENCIA
+   PERSISTENCIA VÍA API
    ============================================================ */
 
+let progressCache = {};
+
 function saveProgress() {
-  const key = `certprep_progress_${getCertKey()}`;
+  const certKey = getCertKey();
   const data = {
     answers: appState.answers,
     correctCount: appState.correctCount,
@@ -129,88 +131,48 @@ function saveProgress() {
     completedScenarios: getCompletedScenarios(),
     timestamp: Date.now(),
   };
-  localStorage.setItem(key, JSON.stringify(data));
+  progressCache[certKey] = data;
+  API.saveProgress(certKey, data).catch(err => console.error('Error guardando progreso:', err));
 }
 
 function loadProgress() {
-  try {
-    const key = `certprep_progress_${getCertKey()}`;
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+  return progressCache[getCertKey()] || null;
 }
 
 function getCompletedScenarios() {
-  try {
-    const key = `certprep_scenarios_${getCertKey()}`;
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  return progressCache[getCertKey()]?.completedScenarios || [];
 }
 
 function markScenarioCompleted(id) {
-  const key = `certprep_scenarios_${getCertKey()}`;
-  const completed = getCompletedScenarios();
-  if (!completed.includes(id)) {
-    completed.push(id);
-    localStorage.setItem(key, JSON.stringify(completed));
+  const certKey = getCertKey();
+  if (!progressCache[certKey]) progressCache[certKey] = { completedScenarios: [] };
+  if (!progressCache[certKey].completedScenarios) progressCache[certKey].completedScenarios = [];
+  if (!progressCache[certKey].completedScenarios.includes(id)) {
+    progressCache[certKey].completedScenarios.push(id);
+    saveProgress();
   }
 }
 
 function clearAllProgress() {
-  const key = `certprep_progress_${getCertKey()}`;
-  const sKey = `certprep_scenarios_${getCertKey()}`;
-  localStorage.removeItem(key);
-  localStorage.removeItem(sKey);
+  const certKey = getCertKey();
+  delete progressCache[certKey];
+  API.clearProgress(certKey).catch(err => console.error('Error borrando progreso:', err));
 }
 
 /* ============================================================
    PERSISTENCIA MEJORADA: NOTAS, SRS, LOGROS, HISTORIAL
    ============================================================ */
 
-function loadEnhancedData() {
-  try {
-    const notesRaw = localStorage.getItem('certprep_notes');
-    if (notesRaw) questionNotes = JSON.parse(notesRaw);
-
-    const srsRaw = localStorage.getItem('certprep_srs');
-    if (srsRaw) srsData = JSON.parse(srsRaw);
-
-    const histRaw = localStorage.getItem('certprep_history');
-    if (histRaw) sessionHistory = JSON.parse(histRaw);
-
-    const achRaw = localStorage.getItem('certprep_achievements');
-    if (achRaw) {
-      const saved = JSON.parse(achRaw);
-      Object.keys(saved).forEach(k => {
-        if (achievements[k]) achievements[k].unlocked = saved[k].unlocked;
-      });
-    }
-
-    const streakRaw = localStorage.getItem('certprep_streak');
-    if (streakRaw) {
-      const s = JSON.parse(streakRaw);
-      maxStreak = s.maxStreak || 0;
-    }
-  } catch (e) {
-    console.error('Error cargando datos mejorados:', e);
-  }
-}
-
 function saveNotes() {
-  localStorage.setItem('certprep_notes', JSON.stringify(questionNotes));
+  API.saveNotes(questionNotes).catch(err => console.error('Error guardando notas:', err));
 }
 
 function saveSRS() {
-  localStorage.setItem('certprep_srs', JSON.stringify(srsData));
+  API.saveSRS(srsData).catch(err => console.error('Error guardando SRS:', err));
 }
 
 function saveHistory() {
-  localStorage.setItem('certprep_history', JSON.stringify(sessionHistory));
+  API.saveHistory(sessionHistory).catch(err => console.error('Error guardando historial:', err));
 }
 
 function saveAchievements() {
@@ -218,8 +180,7 @@ function saveAchievements() {
   Object.keys(achievements).forEach(k => {
     toSave[k] = { unlocked: achievements[k].unlocked };
   });
-  localStorage.setItem('certprep_achievements', JSON.stringify(toSave));
-  localStorage.setItem('certprep_streak', JSON.stringify({ maxStreak }));
+  API.saveAchievements(toSave, maxStreak).catch(err => console.error('Error guardando logros:', err));
 }
 
 function getNote(certKey, questionId) {
@@ -385,7 +346,10 @@ function importFullProgress(file) {
           saveAchievements();
         }
         if (data.maxStreak) { maxStreak = data.maxStreak; saveAchievements(); }
-        if (data.theme) localStorage.setItem('certprep_theme', data.theme);
+        if (data.theme) {
+          applyTheme(data.theme);
+          API.saveTheme(data.theme).catch(() => {});
+        }
         resolve(true);
       } catch (err) {
         reject(err.message);
@@ -400,6 +364,7 @@ function importFullProgress(file) {
    ============================================================ */
 
 function initDarkMode() {
+  // Aplica el tema guardado en localStorage para carga instantánea
   const saved = localStorage.getItem('certprep_theme');
   if (saved === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
@@ -408,18 +373,25 @@ function initDarkMode() {
   }
 }
 
-function toggleDarkMode() {
+function applyTheme(theme) {
   const html = document.documentElement;
   const btn = document.getElementById('theme-toggle');
-  if (html.getAttribute('data-theme') === 'dark') {
-    html.removeAttribute('data-theme');
-    localStorage.setItem('certprep_theme', 'light');
-    if (btn) btn.textContent = '🌙';
-  } else {
+  if (theme === 'dark') {
     html.setAttribute('data-theme', 'dark');
-    localStorage.setItem('certprep_theme', 'dark');
     if (btn) btn.textContent = '☀️';
+  } else {
+    html.removeAttribute('data-theme');
+    if (btn) btn.textContent = '🌙';
   }
+  localStorage.setItem('certprep_theme', theme);
+}
+
+function toggleDarkMode() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  applyTheme(newTheme);
+  API.saveTheme(newTheme).catch(() => {});
 }
 
 /* ============================================================
@@ -2393,11 +2365,190 @@ function renderAchievements() {
 }
 
 /* ============================================================
+   AUTENTICACIÓN
+   ============================================================ */
+
+function showAuthScreen() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.querySelector('.app-header').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  document.querySelector('.app-footer').style.display = 'none';
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.querySelector('.app-header').style.display = '';
+  document.getElementById('app').style.display = '';
+  document.querySelector('.app-footer').style.display = '';
+  const userEl = document.getElementById('header-user');
+  if (currentUser && userEl) {
+    userEl.textContent = currentUser.displayName || currentUser.email;
+  }
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-login-form').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('auth-register-form').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('auth-error').style.display = 'none';
+  document.getElementById('auth-reg-error').style.display = 'none';
+}
+
+async function handleLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errorEl = document.getElementById('auth-error');
+  errorEl.style.display = 'none';
+
+  if (!email || !password) {
+    errorEl.textContent = 'Por favor, rellena todos los campos';
+    errorEl.style.display = '';
+    return;
+  }
+
+  const btn = document.querySelector('#auth-login-form .auth-submit');
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+
+  try {
+    const data = await API.login(email, password);
+    if (data.error) {
+      errorEl.textContent = data.error;
+      errorEl.style.display = '';
+      return;
+    }
+    setToken(data.token);
+    currentUser = data.user;
+    await loadAllUserData();
+    showApp();
+    renderPortal();
+  } catch {
+    errorEl.textContent = 'Error al conectar con el servidor.';
+    errorEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+  }
+}
+
+async function handleRegister() {
+  const name = document.getElementById('auth-name').value.trim();
+  const email = document.getElementById('auth-reg-email').value.trim();
+  const password = document.getElementById('auth-reg-password').value;
+  const errorEl = document.getElementById('auth-reg-error');
+  errorEl.style.display = 'none';
+
+  if (!email || !password) {
+    errorEl.textContent = 'Por favor, rellena el email y la contraseña';
+    errorEl.style.display = '';
+    return;
+  }
+
+  const btn = document.querySelector('#auth-register-form .auth-submit');
+  btn.disabled = true;
+  btn.textContent = 'Creando cuenta...';
+
+  try {
+    const data = await API.register(email, password, name);
+    if (data.error) {
+      errorEl.textContent = data.error;
+      errorEl.style.display = '';
+      return;
+    }
+    setToken(data.token);
+    currentUser = data.user;
+    await loadAllUserData();
+    showApp();
+    renderPortal();
+  } catch {
+    errorEl.textContent = 'Error al conectar con el servidor.';
+    errorEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Crear cuenta';
+  }
+}
+
+function handleLogout() {
+  clearToken();
+  currentUser = null;
+  progressCache = {};
+  questionNotes = {};
+  srsData = {};
+  sessionHistory = [];
+  Object.keys(achievements).forEach(k => { achievements[k].unlocked = false; });
+  maxStreak = 0;
+  currentStreak = 0;
+  aiConfig.ollama = { enabled: false, url: 'http://localhost:11434', selectedModel: '', models: [] };
+  aiConfig.openai = { enabled: false, apiKey: '', model: 'gpt-4o-mini' };
+  aiConfig.claude = { enabled: false, apiKey: '', model: 'claude-3-haiku-20240307' };
+  showAuthScreen();
+}
+
+function getAllCertKeys() {
+  const keys = [];
+  Object.values(certifications).forEach(provider => {
+    Object.keys(provider.certifications).forEach(certId => {
+      keys.push(`${provider.id}_${certId}`);
+    });
+  });
+  return keys;
+}
+
+async function loadAllUserData() {
+  const [enhanced, themeData, aiConfigData, ...progressResults] = await Promise.all([
+    API.getEnhanced(),
+    API.getTheme(),
+    API.getAiConfig(),
+    ...getAllCertKeys().map(k => API.getProgress(k).then(d => [k, d])),
+  ]);
+
+  if (enhanced.notes) questionNotes = enhanced.notes;
+  if (enhanced.srs) srsData = enhanced.srs;
+  if (enhanced.history) sessionHistory = enhanced.history;
+  if (enhanced.achievements) {
+    Object.keys(enhanced.achievements).forEach(k => {
+      if (achievements[k]) achievements[k].unlocked = enhanced.achievements[k].unlocked;
+    });
+  }
+  if (enhanced.maxStreak) maxStreak = enhanced.maxStreak;
+
+  if (themeData.theme) applyTheme(themeData.theme);
+
+  const cfg = aiConfigData;
+  if (cfg.ollama) aiConfig.ollama = { ...aiConfig.ollama, ...cfg.ollama };
+  if (cfg.openai) aiConfig.openai = { ...aiConfig.openai, ...cfg.openai };
+  if (cfg.claude) aiConfig.claude = { ...aiConfig.claude, ...cfg.claude };
+
+  progressCache = {};
+  progressResults.forEach(([k, d]) => {
+    if (d) progressCache[k] = d;
+  });
+}
+
+/* ============================================================
    INICIALIZACIÓN
    ============================================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initDarkMode();
-  loadAiConfig();
-  renderPortal();
+  onAuthError = showAuthScreen;
+
+  const token = getToken();
+  if (!token) {
+    showAuthScreen();
+    return;
+  }
+
+  try {
+    const { user, error } = await API.me();
+    if (error) { showAuthScreen(); return; }
+    currentUser = user;
+    await loadAllUserData();
+    showApp();
+    renderPortal();
+  } catch {
+    showAuthScreen();
+  }
 });
