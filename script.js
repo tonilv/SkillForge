@@ -2757,6 +2757,7 @@ async function renderAdminPanel() {
 
   app.innerHTML = `
     <div class="admin-card">
+      <button class="btn btn-secondary" onclick="renderPortal()" style="margin-bottom:var(--space-md);">← Volver</button>
       <h2>Gestión de usuarios</h2>
 
       <div class="admin-create-form">
