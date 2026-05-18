@@ -90,28 +90,39 @@ function updateReviewSelectionUI() {
   }
 }
 
-function toggleCategoryFilter(catName) {
-  if (reviewActiveCategories.has(catName)) {
-    reviewActiveCategories.delete(catName);
+function toggleCategoryFilter(chipEl) {
+  const catName = chipEl.dataset.cat;
+  if (!catName || !window._reviewByCategory) return;
+
+  const allCats = Object.keys(window._reviewByCategory);
+  const isExclusive = reviewActiveCategories.size === 1 && reviewActiveCategories.has(catName);
+
+  if (isExclusive) {
+    // Ya es la única activa → volver a mostrar todas
+    allCats.forEach(c => reviewActiveCategories.add(c));
   } else {
+    // Seleccionar esta en exclusiva, ocultar el resto
+    reviewActiveCategories.clear();
     reviewActiveCategories.add(catName);
   }
-  const sectionId = 'review-section-' + catName.replace(/[^a-z0-9]/gi, '_');
-  const section = document.getElementById(sectionId);
-  if (section) section.style.display = reviewActiveCategories.has(catName) ? '' : 'none';
 
+  // Actualizar visibilidad de secciones y estado de chips
   document.querySelectorAll('.category-chip').forEach(chip => {
-    const name = chip.querySelector('.category-chip-name')?.textContent;
-    if (name === catName) chip.classList.toggle('selected', reviewActiveCategories.has(catName));
+    const cat = chip.dataset.cat;
+    if (!cat) return;
+    const active = reviewActiveCategories.has(cat);
+    chip.classList.toggle('selected', active);
+    const sectionId = 'review-section-' + cat.replace(/[^a-z0-9]/gi, '_');
+    const section = document.getElementById(sectionId);
+    if (section) section.style.display = active ? '' : 'none';
   });
 
-  if (window._reviewByCategory) {
-    const visibleCount = [...reviewActiveCategories].reduce((sum, cat) => {
-      return sum + (window._reviewByCategory[cat]?.length || 0);
-    }, 0);
-    const badge = document.getElementById('review-selection-count');
-    if (badge) badge.textContent = String(visibleCount);
-  }
+  // Actualizar contador
+  const visibleCount = [...reviewActiveCategories].reduce((sum, c) => {
+    return sum + (window._reviewByCategory[c]?.length || 0);
+  }, 0);
+  const badge = document.getElementById('review-selection-count');
+  if (badge) badge.textContent = String(visibleCount);
 }
 
 function loadAiConfig() {
@@ -570,7 +581,7 @@ function renderReviewPanel() {
   const categoryChips = categoryNames.map(cat => {
     const qs = byCategory[cat];
     return `
-      <button class="category-chip selected" onclick="toggleCategoryFilter(${JSON.stringify(cat)})">
+      <button class="category-chip selected" data-cat="${escapeHtml(cat)}" onclick="toggleCategoryFilter(this)">
         <span class="category-chip-name">${escapeHtml(cat)}</span>
         <span class="category-chip-count">${qs.length}</span>
       </button>
