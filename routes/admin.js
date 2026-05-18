@@ -23,8 +23,8 @@ router.post('/users', async (req, res) => {
   const { email, password, displayName, isAdmin } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: 'Email y contraseña requeridos' });
-  if (password.length < 6)
-    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+  if (password.length < 8)
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
 
   try {
     const hash = await bcrypt.hash(password, 10);

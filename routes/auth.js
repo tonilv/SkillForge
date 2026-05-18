@@ -166,8 +166,8 @@ router.post('/2fa/verify', preAuthMiddleware, async (req, res) => {
 // POST /api/auth/change-password — forced password change on first login
 router.post('/change-password', authMiddleware, async (req, res) => {
   const { newPassword } = req.body;
-  if (!newPassword || newPassword.length < 6)
-    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+  if (!newPassword || newPassword.length < 8)
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
 
   try {
     const hash = await bcrypt.hash(newPassword, 10);

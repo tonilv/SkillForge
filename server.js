@@ -1,12 +1,35 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { initSchema, pool } = require('./db/db');
 const { migrate } = require('./db/migrate');
 
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.error('ERROR: JWT_SECRET debe tener al menos 32 caracteres.');
+  process.exit(1);
+}
+
 const app = express();
-app.use(express.json());
+
+app.use(helmet({
+  contentSecurityPolicy: false, // desactivado para compatibilidad con inline scripts
+}));
+
+app.use(express.json({ limit: '100kb' }));
 app.use(express.static(path.join(__dirname)));
+
+// Rate limiting en endpoints de autenticación
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados intentos. Espera 15 minutos.' },
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/2fa', authLimiter);
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/data', require('./routes/data'));
