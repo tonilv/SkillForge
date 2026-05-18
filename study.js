@@ -238,7 +238,7 @@ async function renderGenerateNotes() {
           </select>
         </div>
         <button class="btn btn-primary" onclick="generateNotesAI()" ${noAI || noContent ? 'disabled' : ''}>
-          🤖 Generar apuntes con IA (${getActiveProviderName()})
+          🤖 Generar apuntes con IA
         </button>
       </div>
 
@@ -436,7 +436,7 @@ function renderQuestionsFromTemario() {
             🎯 Practicar con preguntas reales
           </button>
           ${provider
-            ? `<button class="btn btn-secondary" onclick="generateQuestionsFromTemario()">🤖 Generar con IA (${getActiveProviderName()})</button>`
+            ? `<button class="btn btn-secondary" onclick="generateQuestionsFromTemario()">🤖 Generar con IA</button>`
             : `<button class="btn btn-secondary" onclick="renderConfigPanel()">⚙️ Configurar IA</button>`}
         </div>
       </div>

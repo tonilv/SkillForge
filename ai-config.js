@@ -10,6 +10,7 @@
    ============================================================ */
 
 let aiConfig = {
+  selectedProvider: null,
   ollama: {
     enabled: false,
     url: 'http://localhost:11434',
@@ -92,7 +93,7 @@ function updateReviewSelectionUI() {
   // Actualizar botón de revisión
   const btn = document.getElementById('ai-review-btn');
   if (btn) {
-    btn.textContent = `🤖 Revisar ${count} con IA (${getActiveProviderName()})`;
+    btn.textContent = `🤖 Revisar ${count} con IA`;
   }
 }
 
@@ -383,6 +384,7 @@ function saveOllamaConfig() {
   if (urlInput) aiConfig.ollama.url = urlInput.value.trim();
   if (modelSelect) aiConfig.ollama.selectedModel = modelSelect.value;
   aiConfig.ollama.enabled = !!(aiConfig.ollama.url && aiConfig.ollama.selectedModel);
+  if (aiConfig.ollama.enabled) aiConfig.selectedProvider = 'ollama';
   saveAiConfig();
   showToast('💾 Configuración de Ollama guardada');
 }
@@ -449,6 +451,7 @@ function saveOpenAIConfig() {
   }
   if (modelInput) aiConfig.openai.model = modelInput.value;
   aiConfig.openai.enabled = !!(aiConfig.openai.apiKey && aiConfig.openai.apiKey.startsWith('sk-'));
+  if (aiConfig.openai.enabled) aiConfig.selectedProvider = 'openai';
   saveAiConfig();
   showToast('💾 Configuración de OpenAI guardada');
 }
@@ -516,6 +519,7 @@ function saveClaudeConfig() {
   }
   if (modelInput) aiConfig.claude.model = modelInput.value;
   aiConfig.claude.enabled = !!(aiConfig.claude.apiKey && aiConfig.claude.apiKey.startsWith('sk-ant-'));
+  if (aiConfig.claude.enabled) aiConfig.selectedProvider = 'claude';
   saveAiConfig();
   showToast('💾 Configuración de Claude guardada');
 }
@@ -623,6 +627,7 @@ function saveOpenAICompatibleConfig() {
   aiConfig.openai_compatible.model = model;
   if (apiKey) aiConfig.openai_compatible.apiKey = apiKey;
   aiConfig.openai_compatible.enabled = !!(url && model);
+  if (aiConfig.openai_compatible.enabled) aiConfig.selectedProvider = 'openai_compatible';
   saveAiConfig();
   showToast('💾 Configuración Compatible OpenAI guardada');
 }
@@ -723,8 +728,6 @@ function renderReviewPanel() {
     `;
   });
 
-  const providerName = getActiveProviderName();
-
   app.innerHTML = `
     <div class="fade-in">
       <h2 class="section-title">🔍 Revisión QA</h2>
@@ -738,7 +741,7 @@ function renderReviewPanel() {
       </div>
 
       <div class="actions-row" style="justify-content:center;margin-bottom:var(--space-xl);">
-        <button class="btn btn-primary" onclick="startAiReview()" id="ai-review-btn">🤖 Revisar <span id="review-selection-count">${total}</span> con IA (${providerName})</button>
+        <button class="btn btn-primary" onclick="startAiReview()" id="ai-review-btn">🤖 Revisar <span id="review-selection-count">${total}</span> con IA</button>
         <button class="btn btn-secondary" onclick="renderConfigPanel()">⚙️ Configurar IA</button>
       </div>
 
@@ -803,14 +806,21 @@ function renderReviewCard(q) {
    ============================================================ */
 
 function getActiveProviderName() {
-  if (aiConfig.ollama.enabled) return 'Ollama';
-  if (aiConfig.openai.enabled) return 'OpenAI';
-  if (aiConfig.claude.enabled) return 'Claude';
-  if (aiConfig.openai_compatible?.enabled) return aiConfig.openai_compatible.model || 'Compatible OpenAI';
+  const p = getActiveProvider();
+  if (p === 'ollama') return 'Ollama';
+  if (p === 'openai') return 'OpenAI';
+  if (p === 'claude') return 'Claude';
+  if (p === 'openai_compatible') return aiConfig.openai_compatible.model || 'Compatible OpenAI';
   return 'sin configurar';
 }
 
 function getActiveProvider() {
+  const sel = aiConfig.selectedProvider;
+  if (sel === 'ollama' && aiConfig.ollama.enabled) return 'ollama';
+  if (sel === 'openai' && aiConfig.openai.enabled) return 'openai';
+  if (sel === 'claude' && aiConfig.claude.enabled) return 'claude';
+  if (sel === 'openai_compatible' && aiConfig.openai_compatible?.enabled) return 'openai_compatible';
+  // fallback: first enabled
   if (aiConfig.ollama.enabled) return 'ollama';
   if (aiConfig.openai.enabled) return 'openai';
   if (aiConfig.claude.enabled) return 'claude';
@@ -874,7 +884,7 @@ async function startAiReview() {
     if (btn) {
       btn.disabled = false;
       const visibleCount = [...reviewActiveCategories].reduce((sum, cat) => sum + (window._reviewByCategory?.[cat]?.length || 0), 0);
-      btn.textContent = `🤖 Revisar ${visibleCount} con IA (${getActiveProviderName()})`;
+      btn.textContent = `🤖 Revisar ${visibleCount} con IA`;
     }
   }
 }

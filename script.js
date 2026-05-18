@@ -2792,6 +2792,7 @@ function handleLogout() {
   Object.keys(achievements).forEach(k => { achievements[k].unlocked = false; });
   maxStreak = 0;
   currentStreak = 0;
+  aiConfig.selectedProvider = null;
   aiConfig.ollama = { enabled: false, url: 'http://localhost:11434', selectedModel: '', models: [] };
   aiConfig.openai = { enabled: false, apiKey: '', model: 'gpt-4o-mini' };
   aiConfig.claude = { enabled: false, apiKey: '', model: 'claude-3-haiku-20240307' };
@@ -2834,6 +2835,7 @@ async function loadAllUserData() {
   if (themeData.theme) applyTheme(themeData.theme);
 
   const cfg = aiConfigData;
+  if (cfg.selectedProvider) aiConfig.selectedProvider = cfg.selectedProvider;
   if (cfg.ollama) aiConfig.ollama = { ...aiConfig.ollama, ...cfg.ollama };
   if (cfg.openai) aiConfig.openai = { ...aiConfig.openai, ...cfg.openai };
   if (cfg.claude) aiConfig.claude = { ...aiConfig.claude, ...cfg.claude };
