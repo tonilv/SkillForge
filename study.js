@@ -52,7 +52,7 @@ function renderTemario() {
             </div>
           </div>
           <button class="btn btn-sm ${done ? 'btn-secondary' : 'btn-primary'}"
-            onclick="toggleTemaProgress(${JSON.stringify(cat)})">
+            data-cat="${escapeHtml(cat)}" onclick="toggleTemaProgress(this.dataset.cat)">
             ${done ? 'Desmarcar' : 'Marcar como estudiado'}
           </button>
         </div>
@@ -398,59 +398,47 @@ async function renderNotebookLM() {
 
 /* ── 5. PREGUNTAS DESDE TEMARIO ──────────────────────────────────────────── */
 
-async function renderQuestionsFromTemario() {
+function renderQuestionsFromTemario() {
   appState.mode = 'questionsFromTemario';
   setSidebarActive('questions');
   const app = clearApp();
   const cert = studyState.cert;
+  const questions = getCurrentQuestions();
+  const categories = [...new Set(questions.map(q => q.category || 'General'))];
   const provider = getActiveProvider();
-
-  const materials = await API.getStudyMaterials(getCertKey()).catch(() => []);
-  const categories = [...new Set(getCurrentQuestions().map(q => q.category || 'General'))];
-  const noContent = categories.length === 0 && materials.length === 0;
 
   app.innerHTML = `
     <div class="fade-in">
       <button class="btn btn-secondary" onclick="renderCertificationMenu()" style="margin-bottom:var(--space-md);">← Volver</button>
-      <h2 class="section-title">❓ Preguntas desde Temario — ${escapeHtml(cert.shortName || cert.name)}</h2>
-      <p class="section-subtitle">Genera preguntas tipo test, verdadero/falso y prácticas a partir del temario y material cargado.</p>
-
-      ${!provider ? `<div class="card" style="border:1px solid var(--color-warning);margin-bottom:var(--space-xl);">
-        <p style="color:var(--color-warning);">⚠️ No hay IA configurada. <button class="btn btn-sm btn-secondary" onclick="renderConfigPanel()">⚙️ Configurar IA</button></p>
-      </div>` : ''}
-
-      ${noContent ? `<div class="card" style="margin-bottom:var(--space-xl);">
-        <p style="color:var(--color-text-secondary);">Todavía no hay material de estudio cargado. Añade temario, enlaces o apuntes para generar preguntas inteligentes.</p>
-      </div>` : ''}
+      <h2 class="section-title">❓ Práctica por Temario — ${escapeHtml(cert.shortName || cert.name)}</h2>
+      <p class="section-subtitle">Practica con preguntas reales filtradas por bloque, o genera nuevas con IA.</p>
 
       <div class="card" style="margin-bottom:var(--space-xl);">
         <div class="form-group">
           <label style="font-weight:600;margin-bottom:var(--space-xs);display:block;">Bloque / categoría</label>
           <select id="qtema-block" class="form-input">
-            <option value="all">📚 Todo el temario</option>
-            ${categories.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}
+            <option value="all">📚 Todo el temario (${questions.length})</option>
+            ${categories.map(c => {
+              const n = questions.filter(q => (q.category || 'General') === c).length;
+              return `<option value="${escapeHtml(c)}">${escapeHtml(c)} (${n})</option>`;
+            }).join('')}
           </select>
         </div>
         <div class="form-group">
-          <label style="font-weight:600;margin-bottom:var(--space-xs);display:block;">Tipo de preguntas</label>
-          <select id="qtema-type" class="form-input">
-            <option value="test">Tipo test (4 opciones)</option>
-            <option value="tf">Verdadero / Falso</option>
-            <option value="practica">Preguntas prácticas</option>
-            <option value="mixed">Mixto</option>
-          </select>
+          <label style="font-weight:600;margin-bottom:var(--space-xs);display:block;">Número de preguntas (máx. 5)</label>
+          <div style="display:flex;gap:var(--space-sm);">
+            ${[1,2,3,4,5].map(n => `<button class="btn btn-sm ${n===5?'btn-primary':'btn-secondary'} qtema-count-btn" onclick="setQTemaCount(this,${n})">${n}</button>`).join('')}
+          </div>
+          <input type="hidden" id="qtema-count" value="5">
         </div>
-        <div class="form-group">
-          <label style="font-weight:600;margin-bottom:var(--space-xs);display:block;">Número de preguntas</label>
-          <select id="qtema-count" class="form-input">
-            <option value="5">5 preguntas</option>
-            <option value="10" selected>10 preguntas</option>
-            <option value="15">15 preguntas</option>
-          </select>
+        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;margin-top:var(--space-md);">
+          <button class="btn btn-primary" onclick="startOfficialMiniTest()" ${questions.length === 0 ? 'disabled' : ''}>
+            🎯 Practicar con preguntas reales
+          </button>
+          ${provider
+            ? `<button class="btn btn-secondary" onclick="generateQuestionsFromTemario()">🤖 Generar con IA (${getActiveProviderName()})</button>`
+            : `<button class="btn btn-secondary" onclick="renderConfigPanel()">⚙️ Configurar IA</button>`}
         </div>
-        <button class="btn btn-primary" onclick="generateQuestionsFromTemario()" ${!provider || noContent ? 'disabled' : ''}>
-          🤖 Generar preguntas con IA (${getActiveProviderName()})
-        </button>
       </div>
 
       <div id="qtema-result"></div>
@@ -461,42 +449,175 @@ async function renderQuestionsFromTemario() {
     </div>`;
 }
 
+window.setQTemaCount = function(btn, n) {
+  document.getElementById('qtema-count').value = n;
+  document.querySelectorAll('.qtema-count-btn').forEach(b => {
+    b.classList.remove('btn-primary');
+    b.classList.add('btn-secondary');
+  });
+  btn.classList.remove('btn-secondary');
+  btn.classList.add('btn-primary');
+};
+
+window.startOfficialMiniTest = function() {
+  const block = document.getElementById('qtema-block')?.value || 'all';
+  const count = parseInt(document.getElementById('qtema-count')?.value || '5');
+  const resultEl = document.getElementById('qtema-result');
+  if (!resultEl) return;
+
+  const allQ = getCurrentQuestions().filter(q => q.options && q.options.length >= 2 && q.correctAnswer !== undefined);
+  let pool = block === 'all' ? [...allQ] : allQ.filter(q => (q.category || 'General') === block);
+
+  if (pool.length === 0) {
+    resultEl.innerHTML = `<div class="card"><p style="color:var(--color-text-secondary);">No hay preguntas disponibles en este bloque.</p></div>`;
+    return;
+  }
+
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+
+  window._miniTestState = {
+    questions: pool.slice(0, Math.min(count, pool.length)),
+    current: 0,
+    correct: 0,
+    answers: [],
+  };
+  _renderMiniTestQuestion();
+};
+
+function _renderMiniTestQuestion() {
+  const state = window._miniTestState;
+  const resultEl = document.getElementById('qtema-result');
+  if (!resultEl || !state) return;
+
+  if (state.current >= state.questions.length) {
+    _renderMiniTestResults();
+    return;
+  }
+
+  const q = state.questions[state.current];
+  const qNum = state.current + 1;
+  const total = state.questions.length;
+  const letters = ['A', 'B', 'C', 'D'];
+
+  resultEl.innerHTML = `
+    <div class="card fade-in">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-md);">
+        <span style="font-size:0.85rem;color:var(--color-text-secondary);">Pregunta ${qNum} de ${total}</span>
+        ${q.category ? `<span class="badge-level básico">${escapeHtml(q.category)}</span>` : ''}
+      </div>
+      <p style="font-size:1.05rem;font-weight:600;margin-bottom:var(--space-lg);line-height:1.5;">${escapeHtml(q.question)}</p>
+      <div class="options-list" id="mini-options">
+        ${(q.options || []).map((opt, i) => `
+          <button class="option-btn" data-idx="${i}" onclick="answerMiniTest(${i}, this)">
+            <span class="option-letter">${letters[i]}</span>
+            <span>${escapeHtml(opt)}</span>
+          </button>`).join('')}
+      </div>
+      <div id="mini-feedback" style="display:none;margin-top:var(--space-lg);"></div>
+    </div>`;
+}
+
+window.answerMiniTest = function(optionIndex, btn) {
+  const state = window._miniTestState;
+  if (!state) return;
+
+  const q = state.questions[state.current];
+  const correct = q.correctAnswer;
+  const isCorrect = optionIndex === correct;
+
+  if (isCorrect) state.correct++;
+  state.answers.push({ chosen: optionIndex, isCorrect });
+
+  document.querySelectorAll('#mini-options .option-btn').forEach((b, i) => {
+    b.disabled = true;
+    if (i === correct) b.classList.add('correct');
+    else if (i === optionIndex && !isCorrect) b.classList.add('incorrect');
+    else b.classList.add('disabled');
+  });
+
+  const feedbackEl = document.getElementById('mini-feedback');
+  if (feedbackEl) {
+    feedbackEl.style.display = '';
+    const color = isCorrect ? 'var(--color-success)' : 'var(--color-error)';
+    const bg = isCorrect ? 'var(--color-success-bg, #f0fdf4)' : 'var(--color-error-bg, #fef2f2)';
+    feedbackEl.innerHTML = `
+      <div style="padding:var(--space-md);border-radius:var(--radius-md);background:${bg};border-left:4px solid ${color};">
+        <p style="font-weight:700;color:${color};">${isCorrect ? '✅ Correcto' : '❌ Incorrecto'}</p>
+        ${q.explanation ? `<p style="font-size:0.9rem;margin-top:var(--space-xs);color:var(--color-text);">${escapeHtml(q.explanation)}</p>` : ''}
+      </div>
+      <button class="btn btn-primary" style="margin-top:var(--space-md);" onclick="nextMiniTest()">
+        ${state.current + 1 < state.questions.length ? 'Siguiente →' : 'Ver resultados'}
+      </button>`;
+  }
+};
+
+window.nextMiniTest = function() {
+  window._miniTestState.current++;
+  _renderMiniTestQuestion();
+};
+
+function _renderMiniTestResults() {
+  const state = window._miniTestState;
+  const resultEl = document.getElementById('qtema-result');
+  if (!resultEl) return;
+
+  const total = state.questions.length;
+  const correct = state.correct;
+  const pct = Math.round((correct / total) * 100);
+  const letters = ['A', 'B', 'C', 'D'];
+  const pill = pct >= 80 ? 'success' : pct >= 50 ? 'neutral' : 'error';
+
+  resultEl.innerHTML = `
+    <div class="card fade-in">
+      <h3 style="text-align:center;margin-bottom:var(--space-lg);">🏁 Resultado final</h3>
+      <div style="text-align:center;padding:var(--space-xl);margin-bottom:var(--space-lg);background:var(--color-bg);border-radius:var(--radius-lg);">
+        <div style="font-size:2.5rem;font-weight:700;color:var(--color-primary);">${correct}/${total}</div>
+        <div style="font-size:1.2rem;font-weight:600;margin-top:var(--space-xs);">${pct}%</div>
+        <div style="color:var(--color-text-secondary);margin-top:var(--space-xs);">${pct >= 80 ? '¡Excelente!' : pct >= 50 ? 'Puedes mejorar' : 'Sigue practicando'}</div>
+      </div>
+      <div style="display:flex;gap:var(--space-sm);justify-content:center;flex-wrap:wrap;margin-bottom:var(--space-xl);">
+        <button class="btn btn-primary" onclick="startOfficialMiniTest()">🔄 Repetir</button>
+        <button class="btn btn-secondary" onclick="renderQuestionsFromTemario()">← Nueva configuración</button>
+      </div>
+      <h4 style="margin-bottom:var(--space-md);">Revisión de respuestas</h4>
+      ${state.questions.map((q, i) => {
+        const ans = state.answers[i];
+        const correctIdx = q.correctAnswer;
+        return `
+          <div style="margin-bottom:var(--space-md);padding:var(--space-md);border-radius:var(--radius-md);border-left:4px solid ${ans?.isCorrect ? 'var(--color-success)' : 'var(--color-error)'};">
+            <p style="font-weight:600;margin-bottom:var(--space-xs);">${i + 1}. ${escapeHtml(q.question)}</p>
+            <p style="font-size:0.88rem;color:var(--color-text-secondary);">
+              Tu respuesta: <strong>${ans ? letters[ans.chosen] : '—'}</strong>
+              ${ans?.isCorrect ? '✅' : `❌ — Correcta: <strong>${letters[correctIdx]}</strong> ${escapeHtml(q.options?.[correctIdx] || '')}`}
+            </p>
+            ${q.explanation ? `<p style="font-size:0.85rem;color:var(--color-text-secondary);margin-top:4px;">${escapeHtml(q.explanation)}</p>` : ''}
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
 window.generateQuestionsFromTemario = async function() {
   const cert = studyState.cert;
   const block = document.getElementById('qtema-block')?.value || 'all';
-  const type = document.getElementById('qtema-type')?.value || 'test';
-  const count = document.getElementById('qtema-count')?.value || '10';
+  const count = document.getElementById('qtema-count')?.value || '5';
   const provider = getActiveProvider();
   const resultEl = document.getElementById('qtema-result');
-  if (!resultEl) return;
+  if (!resultEl || !provider) return;
 
   const questions = getCurrentQuestions();
   const filtered = block === 'all' ? questions : questions.filter(q => (q.category || 'General') === block);
   const materials = await API.getStudyMaterials(getCertKey()).catch(() => []);
 
-  const typeDesc = { test: 'tipo test con 4 opciones (A/B/C/D)', tf: 'verdadero/falso', practica: 'prácticas (abiertas)', mixed: 'mixtas' }[type] || 'tipo test';
-
-  const prompt = `Eres un experto en certificaciones técnicas. Genera ${count} preguntas ${typeDesc} para el examen "${cert.name}".
+  const prompt = `Eres un experto en certificaciones técnicas. Genera ${count} preguntas tipo test (4 opciones A/B/C/D) para el examen "${cert.name}".
 ${block !== 'all' ? `Bloque: ${block}` : 'Cubre varios bloques del temario.'}
+Preguntas existentes (para no repetir): ${filtered.slice(0, 8).map(q => q.question).join(' | ')}
+${materials.length ? `Material adicional: ${materials.map(m => m.title || m.content).slice(0, 3).join(', ')}` : ''}
+Genera EXACTAMENTE ${count} preguntas nuevas con opciones A, B, C, D, respuesta correcta y explicación breve. Formato Markdown.`;
 
-CONTEXTO DEL TEMARIO:
-${[...new Set(filtered.map(q => q.category || 'General'))].join(', ')}
-
-MATERIAL ADICIONAL:
-${materials.map(m => `${m.title || ''}: ${m.content}`).slice(0, 5).join('\n') || 'Sin material adicional.'}
-
-PREGUNTAS EXISTENTES (para no repetir):
-${filtered.slice(0, 10).map(q => `- ${q.question}`).join('\n')}
-
-Genera EXACTAMENTE ${count} preguntas nuevas y diferentes. Para cada pregunta incluye:
-- La pregunta
-- 4 opciones (A, B, C, D) si es tipo test
-- La respuesta correcta
-- Explicación breve
-
-Responde en formato Markdown claro.`;
-
-  resultEl.innerHTML = `<div class="test-result test-loading">🤖 Generando ${count} preguntas...</div>`;
+  resultEl.innerHTML = `<div class="test-result test-loading">🤖 Generando preguntas...</div>`;
 
   try {
     const response = await callAiProvider(provider, prompt);
@@ -504,7 +625,7 @@ Responde en formato Markdown claro.`;
       <div class="card">
         <div style="display:flex;justify-content:flex-end;gap:var(--space-sm);margin-bottom:var(--space-md);">
           <button class="btn btn-sm btn-secondary" onclick="copyText('qtema-output')">📋 Copiar</button>
-          <button class="btn btn-sm btn-secondary" onclick="downloadText('qtema-output','preguntas-${cert.shortName || 'cert'}.md')">⬇️ Descargar</button>
+          <button class="btn btn-sm btn-secondary" onclick="downloadTxt('qtema-output','preguntas.txt')">⬇️ Descargar</button>
         </div>
         <pre id="qtema-output" style="white-space:pre-wrap;font-family:inherit;line-height:1.6;">${escapeHtml(response)}</pre>
       </div>`;
