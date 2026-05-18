@@ -32,6 +32,8 @@ let configActiveTab = 'ollama';
 
 // Estado para selección de preguntas en revisión
 let reviewSelectedIds = new Set();
+// Categorías activas (visibles) en Revisión QA
+let reviewActiveCategories = new Set();
 
 function toggleReviewSelection(qid) {
   if (reviewSelectedIds.has(qid)) {
@@ -85,6 +87,30 @@ function updateReviewSelectionUI() {
   const btn = document.getElementById('ai-review-btn');
   if (btn) {
     btn.textContent = `🤖 Revisar ${count} con IA (${getActiveProviderName()})`;
+  }
+}
+
+function toggleCategoryFilter(catName) {
+  if (reviewActiveCategories.has(catName)) {
+    reviewActiveCategories.delete(catName);
+  } else {
+    reviewActiveCategories.add(catName);
+  }
+  const sectionId = 'review-section-' + catName.replace(/[^a-z0-9]/gi, '_');
+  const section = document.getElementById(sectionId);
+  if (section) section.style.display = reviewActiveCategories.has(catName) ? '' : 'none';
+
+  document.querySelectorAll('.category-chip').forEach(chip => {
+    const name = chip.querySelector('.category-chip-name')?.textContent;
+    if (name === catName) chip.classList.toggle('selected', reviewActiveCategories.has(catName));
+  });
+
+  if (window._reviewByCategory) {
+    const visibleCount = [...reviewActiveCategories].reduce((sum, cat) => {
+      return sum + (window._reviewByCategory[cat]?.length || 0);
+    }, 0);
+    const badge = document.getElementById('review-selection-count');
+    if (badge) badge.textContent = String(visibleCount);
   }
 }
 
@@ -536,40 +562,20 @@ function renderReviewPanel() {
 
   const categoryNames = Object.keys(byCategory);
 
-  // Inicializar selección con todas las preguntas por defecto
+  // Inicializar: todas las categorías activas (visibles)
   reviewSelectedIds = new Set(questions.map(q => q.id));
+  reviewActiveCategories = new Set(categoryNames);
+  window._reviewByCategory = byCategory;
 
-  function isCategoryFullySelected(catQuestions) {
-    return catQuestions.every(q => reviewSelectedIds.has(q.id));
-  }
-
-  function toggleCategorySelection(catQuestions) {
-    if (isCategoryFullySelected(catQuestions)) {
-      catQuestions.forEach(q => reviewSelectedIds.delete(q.id));
-    } else {
-      catQuestions.forEach(q => reviewSelectedIds.add(q.id));
-    }
-    updateReviewSelectionUI();
-  }
-
-  const categoryChips = Object.entries(byCategory).map(([cat, qs]) => {
-    const selected = isCategoryFullySelected(qs);
+  const categoryChips = categoryNames.map(cat => {
+    const qs = byCategory[cat];
     return `
-      <button class="category-chip ${selected ? 'selected' : ''}" onclick="toggleCategorySelectionWrapper('${escapeHtml(cat).replace(/'/g, "\\'")}')">
+      <button class="category-chip selected" onclick="toggleCategoryFilter(${JSON.stringify(cat)})">
         <span class="category-chip-name">${escapeHtml(cat)}</span>
         <span class="category-chip-count">${qs.length}</span>
       </button>
     `;
   }).join('');
-
-  // Guardar referencia para actualización dinámica de chips
-  window._reviewByCategory = byCategory;
-
-  // Exponer wrapper para onclick inline
-  window.toggleCategorySelectionWrapper = function(catName) {
-    const catQuestions = byCategory[catName];
-    if (catQuestions) toggleCategorySelection(catQuestions);
-  };
 
   const categoryStats = Object.entries(byCategory).map(([cat, qs]) => `
     <div class="review-stat-card">
@@ -580,15 +586,10 @@ function renderReviewPanel() {
 
   let questionsHtml = '';
   Object.entries(byCategory).forEach(([cat, qs]) => {
+    const sectionId = 'review-section-' + cat.replace(/[^a-z0-9]/gi, '_');
     questionsHtml += `
-      <div class="fade-in" style="margin-bottom:var(--space-2xl);">
-        <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-md);flex-wrap:wrap;">
-          <h3 class="section-title" style="font-size:1.2rem;text-align:left;margin:0;">📁 ${escapeHtml(cat)} <span style="color:var(--color-text-secondary);font-size:0.85rem;">(${qs.length} preguntas)</span></h3>
-          <div style="margin-left:auto;display:flex;gap:var(--space-xs);">
-            <button class="btn btn-sm btn-secondary" onclick="selectCategoryReview([${qs.map(q=>q.id).join(',')}])">✓ Todas</button>
-            <button class="btn btn-sm btn-secondary" onclick="deselectCategoryReview([${qs.map(q=>q.id).join(',')}])">✗ Ninguna</button>
-          </div>
-        </div>
+      <div id="${sectionId}" class="fade-in" style="margin-bottom:var(--space-2xl);">
+        <h3 class="section-title" style="font-size:1.2rem;text-align:left;margin-bottom:var(--space-md);">📁 ${escapeHtml(cat)} <span style="color:var(--color-text-secondary);font-size:0.85rem;">(${qs.length} preguntas)</span></h3>
         <div class="review-grid">
           ${qs.map(q => renderReviewCard(q)).join('')}
         </div>
@@ -597,33 +598,21 @@ function renderReviewPanel() {
   });
 
   const providerName = getActiveProviderName();
-  const selectedCount = reviewSelectedIds.size;
 
   app.innerHTML = `
     <div class="fade-in">
-      <h2 class="section-title">🔍 Revisión de Preguntas y Respuestas</h2>
-      <p class="section-subtitle">Vista de solo lectura. Pulsa una categoría para seleccionar/deseleccionar todas sus preguntas, o usa los checkboxes individuales.</p>
+      <h2 class="section-title">🔍 Revisión QA</h2>
+      <p class="section-subtitle">Pulsa los chips para mostrar u ocultar categorías. La revisión con IA solo procesa las categorías visibles.</p>
 
       <div class="card" style="margin-bottom:var(--space-xl);">
-        <div style="font-weight:700;color:var(--color-text);margin-bottom:var(--space-md);font-size:0.95rem;">📂 Filtrar por categoría (pulsa para seleccionar/deseleccionar):</div>
+        <div style="font-weight:700;color:var(--color-text);margin-bottom:var(--space-md);font-size:0.95rem;">📂 Categorías (pulsa para filtrar):</div>
         <div class="category-chips">
           ${categoryChips}
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:var(--space-xl);text-align:center;">
-        <div style="display:flex;align-items:center;justify-content:center;gap:var(--space-md);flex-wrap:wrap;margin-bottom:var(--space-md);">
-          <span id="review-selection-count" style="font-weight:700;color:var(--color-primary);font-size:1.1rem;">${selectedCount} seleccionada${selectedCount !== 1 ? 's' : ''}</span>
-          <span style="color:var(--color-text-secondary);">de ${total} preguntas</span>
-        </div>
-        <div class="actions-row" style="justify-content:center;margin-top:0;">
-          <button class="btn btn-sm btn-secondary" onclick="selectAllReview(getCurrentQuestions())">✓ Seleccionar todas</button>
-          <button class="btn btn-sm btn-secondary" onclick="deselectAllReview()">✗ Deseleccionar todas</button>
-        </div>
-      </div>
-
       <div class="actions-row" style="justify-content:center;margin-bottom:var(--space-xl);">
-        <button class="btn btn-primary" onclick="startAiReview()" id="ai-review-btn">🤖 Revisar ${selectedCount} con IA (${providerName})</button>
+        <button class="btn btn-primary" onclick="startAiReview()" id="ai-review-btn">🤖 Revisar <span id="review-selection-count">${total}</span> con IA (${providerName})</button>
         <button class="btn btn-secondary" onclick="renderConfigPanel()">⚙️ Configurar IA</button>
       </div>
 
@@ -709,29 +698,46 @@ async function startAiReview() {
   }
 
   const allQuestions = getCurrentQuestions();
-  const selectedQuestions = allQuestions.filter(q => reviewSelectedIds.has(q.id));
+  const selectedQuestions = allQuestions.filter(q => {
+    const cat = q.category || 'Sin categoría';
+    return reviewActiveCategories.has(cat);
+  });
 
   if (selectedQuestions.length === 0) {
-    alert('No has seleccionado ninguna pregunta. Marca al menos una casilla para revisar.');
+    alert('No hay preguntas visibles. Activa al menos una categoría con los chips.');
     return;
   }
 
+  const BATCH_SIZE = 15;
   const btn = document.getElementById('ai-review-btn');
   const resultContainer = document.getElementById('ai-review-result');
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = `⏳ Revisando ${selectedQuestions.length} preguntas...`;
-  }
+
+  if (btn) { btn.disabled = true; }
   if (resultContainer) {
     resultContainer.classList.remove('hidden');
-    resultContainer.innerHTML = `<div class="test-result test-loading">🤖 La IA está revisando ${selectedQuestions.length} preguntas seleccionadas. Esto puede tardar unos segundos...</div>`;
+    resultContainer.innerHTML = `<div class="test-result test-loading">🤖 Preparando revisión de ${selectedQuestions.length} preguntas en lotes de ${BATCH_SIZE}...</div>`;
   }
 
   try {
-    const prompt = buildReviewPrompt(selectedQuestions);
-    const response = await callAiProvider(provider, prompt);
-    const verdicts = parseAiReviewResponse(response, selectedQuestions);
-    renderAiReviewResult(verdicts, selectedQuestions);
+    const batches = [];
+    for (let i = 0; i < selectedQuestions.length; i += BATCH_SIZE) {
+      batches.push(selectedQuestions.slice(i, i + BATCH_SIZE));
+    }
+
+    let allVerdicts = [];
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      if (btn) btn.textContent = `⏳ Lote ${i + 1}/${batches.length} (${batch.length} preguntas)...`;
+      if (resultContainer) {
+        resultContainer.innerHTML = `<div class="test-result test-loading">🤖 Revisando lote ${i + 1} de ${batches.length} (${batch.length} preguntas)...</div>`;
+      }
+      const prompt = buildReviewPrompt(batch);
+      const response = await callAiProvider(provider, prompt);
+      const verdicts = parseAiReviewResponse(response, batch);
+      allVerdicts = [...allVerdicts, ...verdicts];
+    }
+
+    renderAiReviewResult(allVerdicts, selectedQuestions);
   } catch (err) {
     if (resultContainer) {
       resultContainer.innerHTML = `<div class="test-result test-error"><strong>❌ Error en la revisión</strong><br>${escapeHtml(err.message)}</div>`;
@@ -739,8 +745,8 @@ async function startAiReview() {
   } finally {
     if (btn) {
       btn.disabled = false;
-      const count = reviewSelectedIds.size;
-      btn.textContent = `🤖 Revisar ${count} con IA (${getActiveProviderName()})`;
+      const visibleCount = [...reviewActiveCategories].reduce((sum, cat) => sum + (window._reviewByCategory?.[cat]?.length || 0), 0);
+      btn.textContent = `🤖 Revisar ${visibleCount} con IA (${getActiveProviderName()})`;
     }
   }
 }
