@@ -101,7 +101,7 @@ body {
 
 /* -------------------- HEADER -------------------- */
 .app-header {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: #000;
   color: #fff;
   padding: var(--space-2xl) var(--space-md);
   text-align: center;
@@ -2731,13 +2731,14 @@ body {
 }
 
 .header-username {
-  font-size: 0.82rem;
-  color: var(--color-text-secondary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
   padding: 0 var(--space-xs);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 140px;
+  max-width: 200px;
 }
 
 /* ── 2FA styles ─────────────────────────────────────────────── */
