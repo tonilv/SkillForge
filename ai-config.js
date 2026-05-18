@@ -583,27 +583,24 @@ async function testOpenAICompatibleConnection() {
   resultEl.textContent = '⏳ Probando conexión...';
 
   try {
-    const headers = { 'Content-Type': 'application/json' };
-    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
-
-    const res = await fetch(`${url}/chat/completions`, {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/data/ai-proxy', {
       method: 'POST',
-      headers,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({
+        url: `${url}/chat/completions`,
         model,
         messages: [{ role: 'user', content: 'Reply with the single word: OK' }],
-        max_tokens: 10,
+        maxTokens: 10,
         temperature: 0,
+        ...(apiKey ? { apiKey } : {}),
       }),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(20000),
     });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
-    }
-
     const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+
     resultEl.className = 'test-result test-success';
     resultEl.innerHTML = `<strong>✅ Conexión exitosa</strong><br>
       Modelo: <code>${escapeHtml(model)}</code><br>
@@ -995,27 +992,25 @@ async function callAiProvider(provider, prompt) {
   if (provider === 'openai_compatible') {
     const cfg = aiConfig.openai_compatible;
     const url = cfg.url.replace(/\/$/, '');
-    const headers = { 'Content-Type': 'application/json' };
-    if (cfg.apiKey) headers['Authorization'] = `Bearer ${cfg.apiKey}`;
-    const res = await fetch(`${url}/chat/completions`, {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/data/ai-proxy', {
       method: 'POST',
-      headers,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({
+        url: `${url}/chat/completions`,
         model: cfg.model,
         messages: [
           { role: 'system', content: 'Eres un experto en certificaciones técnicas. Responde solo con JSON válido.' },
           { role: 'user', content: prompt },
         ],
         temperature: 0.1,
-        max_tokens: 4000,
+        maxTokens: 4000,
+        ...(cfg.apiKey ? { apiKey: cfg.apiKey } : {}),
       }),
-      signal: AbortSignal.timeout(120000),
+      signal: AbortSignal.timeout(130000),
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `Compatible OpenAI HTTP ${res.status}`);
-    }
     const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || `Compatible OpenAI HTTP ${res.status}`);
     return data.choices?.[0]?.message?.content || '';
   }
 

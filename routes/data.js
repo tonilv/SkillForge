@@ -242,4 +242,42 @@ router.delete('/study/:certKey/:id', async (req, res) => {
   }
 });
 
+// ── Proxy para Compatible OpenAI (evita CORS en frontend) ────────────────────
+
+router.post('/ai-proxy', async (req, res) => {
+  const { url, model, messages, apiKey, maxTokens, temperature } = req.body;
+  if (!url || !model || !Array.isArray(messages)) {
+    return res.status(400).json({ error: 'url, model y messages son requeridos' });
+  }
+  // Bloquear rangos RFC1918 (SSRF) — localhost se descarta a nivel red en producción
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname;
+    if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(host)) {
+      return res.status(400).json({ error: 'URL no permitida' });
+    }
+  } catch {
+    return res.status(400).json({ error: 'URL inválida' });
+  }
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+  try {
+    const upstream = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ model, messages, temperature: temperature ?? 0.1, max_tokens: maxTokens ?? 4000 }),
+      signal: AbortSignal.timeout(120000),
+    });
+    const data = await upstream.json();
+    if (!upstream.ok) {
+      return res.status(upstream.status).json({ error: data?.error?.message || `HTTP ${upstream.status}` });
+    }
+    res.json(data);
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
 module.exports = router;
