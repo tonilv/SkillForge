@@ -2795,6 +2795,7 @@ function handleLogout() {
   aiConfig.ollama = { enabled: false, url: 'http://localhost:11434', selectedModel: '', models: [] };
   aiConfig.openai = { enabled: false, apiKey: '', model: 'gpt-4o-mini' };
   aiConfig.claude = { enabled: false, apiKey: '', model: 'claude-3-haiku-20240307' };
+  aiConfig.openai_compatible = { enabled: false, url: '', model: '', apiKey: '' };
   showAuthScreen();
 }
 
@@ -2836,6 +2837,7 @@ async function loadAllUserData() {
   if (cfg.ollama) aiConfig.ollama = { ...aiConfig.ollama, ...cfg.ollama };
   if (cfg.openai) aiConfig.openai = { ...aiConfig.openai, ...cfg.openai };
   if (cfg.claude) aiConfig.claude = { ...aiConfig.claude, ...cfg.claude };
+  if (cfg.openai_compatible) aiConfig.openai_compatible = { ...aiConfig.openai_compatible, ...cfg.openai_compatible };
 
   progressCache = {};
   progressResults.forEach(([k, d]) => {

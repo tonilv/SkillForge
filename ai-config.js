@@ -26,6 +26,12 @@ let aiConfig = {
     apiKey: '',
     model: 'claude-3-haiku-20240307',
   },
+  openai_compatible: {
+    enabled: false,
+    url: '',
+    model: '',
+    apiKey: '',
+  },
 };
 
 let configActiveTab = 'ollama';
@@ -150,6 +156,7 @@ function renderConfigPanel() {
         <button class="config-tab ${configActiveTab === 'ollama' ? 'active' : ''}" onclick="switchConfigTab('ollama')">🦙 Ollama (Local)</button>
         <button class="config-tab ${configActiveTab === 'openai' ? 'active' : ''}" onclick="switchConfigTab('openai')">🤖 OpenAI</button>
         <button class="config-tab ${configActiveTab === 'claude' ? 'active' : ''}" onclick="switchConfigTab('claude')">🧠 Claude</button>
+        <button class="config-tab ${configActiveTab === 'openai_compatible' ? 'active' : ''}" onclick="switchConfigTab('openai_compatible')">🔌 Compatible OpenAI</button>
       </div>
 
       <div id="config-content">
@@ -176,6 +183,7 @@ function renderConfigTabContent() {
   if (configActiveTab === 'ollama') return renderOllamaConfig();
   if (configActiveTab === 'openai') return renderOpenAIConfig();
   if (configActiveTab === 'claude') return renderClaudeConfig();
+  if (configActiveTab === 'openai_compatible') return renderOpenAICompatibleConfig();
   return '';
 }
 
@@ -513,6 +521,113 @@ function saveClaudeConfig() {
 }
 
 /* ============================================================
+   COMPATIBLE OPENAI (URL + MODELO + KEY PERSONALIZADOS)
+   ============================================================ */
+
+function renderOpenAICompatibleConfig() {
+  const cfg = aiConfig.openai_compatible;
+  const maskedKey = cfg.apiKey ? cfg.apiKey.slice(0, 4) + '...' + cfg.apiKey.slice(-4) : '';
+  return `
+    <div class="config-section fade-in">
+      <h3 class="config-section-title">🔌 Compatible OpenAI</h3>
+      <p class="config-description">Cualquier servicio que implemente la API de OpenAI: LM Studio, LocalAI, Groq, Together AI, Mistral, etc.</p>
+
+      <div class="config-field">
+        <label class="config-label">URL base <span class="config-hint">(sin /v1/chat/completions)</span></label>
+        <input type="text" class="config-input" id="compat-url" value="${escapeHtml(cfg.url)}" placeholder="http://localhost:1234/v1">
+      </div>
+
+      <div class="config-field">
+        <label class="config-label">Modelo</label>
+        <input type="text" class="config-input" id="compat-model" value="${escapeHtml(cfg.model)}" placeholder="llama-3-8b-instruct / mistral-7b / ...">
+      </div>
+
+      <div class="config-field">
+        <label class="config-label">API Key <span class="config-hint">(opcional si el servidor no lo requiere)</span></label>
+        <input type="password" class="config-input" id="compat-key" value="${maskedKey ? cfg.apiKey : ''}" placeholder="sk-... (dejar vacío si no se necesita)">
+      </div>
+
+      <div class="config-actions">
+        <button class="btn btn-secondary" onclick="testOpenAICompatibleConnection()">🔍 Probar conexión</button>
+        <button class="btn btn-primary" onclick="saveOpenAICompatibleConfig()">💾 Guardar</button>
+      </div>
+      <div id="compat-test-result" class="test-result hidden"></div>
+    </div>
+  `;
+}
+
+async function testOpenAICompatibleConnection() {
+  const resultEl = document.getElementById('compat-test-result');
+  if (!resultEl) return;
+
+  const url = (document.getElementById('compat-url')?.value || aiConfig.openai_compatible.url).trim().replace(/\/$/, '');
+  const model = (document.getElementById('compat-model')?.value || aiConfig.openai_compatible.model).trim();
+  const apiKey = (document.getElementById('compat-key')?.value || aiConfig.openai_compatible.apiKey).trim();
+
+  if (!url) {
+    resultEl.className = 'test-result test-error';
+    resultEl.innerHTML = '<strong>❌ URL requerida</strong><br>Introduce la URL base del servidor.';
+    return;
+  }
+  if (!model) {
+    resultEl.className = 'test-result test-error';
+    resultEl.innerHTML = '<strong>❌ Modelo requerido</strong><br>Introduce el nombre del modelo.';
+    return;
+  }
+
+  resultEl.className = 'test-result test-loading';
+  resultEl.textContent = '⏳ Probando conexión...';
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+    const res = await fetch(`${url}/chat/completions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: 'Reply with the single word: OK' }],
+        max_tokens: 10,
+        temperature: 0,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    resultEl.className = 'test-result test-success';
+    resultEl.innerHTML = `<strong>✅ Conexión exitosa</strong><br>
+      Modelo: <code>${escapeHtml(model)}</code><br>
+      Respuesta: ${escapeHtml((data.choices?.[0]?.message?.content || '').slice(0, 200))}`;
+  } catch (err) {
+    resultEl.className = 'test-result test-error';
+    resultEl.innerHTML = `<strong>❌ Error de conexión</strong><br>${escapeHtml(err.message)}`;
+  }
+}
+
+function saveOpenAICompatibleConfig() {
+  const urlInput = document.getElementById('compat-url');
+  const modelInput = document.getElementById('compat-model');
+  const keyInput = document.getElementById('compat-key');
+
+  const url = urlInput ? urlInput.value.trim().replace(/\/$/, '') : aiConfig.openai_compatible.url;
+  const model = modelInput ? modelInput.value.trim() : aiConfig.openai_compatible.model;
+  const apiKey = keyInput ? keyInput.value.trim() : aiConfig.openai_compatible.apiKey;
+
+  aiConfig.openai_compatible.url = url;
+  aiConfig.openai_compatible.model = model;
+  if (apiKey) aiConfig.openai_compatible.apiKey = apiKey;
+  aiConfig.openai_compatible.enabled = !!(url && model);
+  saveAiConfig();
+  showToast('💾 Configuración Compatible OpenAI guardada');
+}
+
+/* ============================================================
    UTILIDADES
    ============================================================ */
 
@@ -691,6 +806,7 @@ function getActiveProviderName() {
   if (aiConfig.ollama.enabled) return 'Ollama';
   if (aiConfig.openai.enabled) return 'OpenAI';
   if (aiConfig.claude.enabled) return 'Claude';
+  if (aiConfig.openai_compatible?.enabled) return aiConfig.openai_compatible.model || 'Compatible OpenAI';
   return 'sin configurar';
 }
 
@@ -698,6 +814,7 @@ function getActiveProvider() {
   if (aiConfig.ollama.enabled) return 'ollama';
   if (aiConfig.openai.enabled) return 'openai';
   if (aiConfig.claude.enabled) return 'claude';
+  if (aiConfig.openai_compatible?.enabled) return 'openai_compatible';
   return null;
 }
 
@@ -864,6 +981,34 @@ async function callAiProvider(provider, prompt) {
     const data = await res.json();
     return data.content?.[0]?.text || '';
   }
+
+  if (provider === 'openai_compatible') {
+    const cfg = aiConfig.openai_compatible;
+    const url = cfg.url.replace(/\/$/, '');
+    const headers = { 'Content-Type': 'application/json' };
+    if (cfg.apiKey) headers['Authorization'] = `Bearer ${cfg.apiKey}`;
+    const res = await fetch(`${url}/chat/completions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: cfg.model,
+        messages: [
+          { role: 'system', content: 'Eres un experto en certificaciones técnicas. Responde solo con JSON válido.' },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.1,
+        max_tokens: 4000,
+      }),
+      signal: AbortSignal.timeout(120000),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Compatible OpenAI HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+
 
   throw new Error('Proveedor de IA no soportado');
 }
