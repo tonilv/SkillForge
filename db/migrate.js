@@ -4,18 +4,15 @@
 // También es importado por server.js para el seed automático en primer arranque.
 
 require('dotenv').config();
-const vm = require('vm');
-const fs = require('fs');
 const path = require('path');
 const { pool } = require('./db');
 
-async function loadCertificationsFromFile() {
-  const filePath = path.join(__dirname, '../data/certifications.js');
-  const code = fs.readFileSync(filePath, 'utf8');
-  const ctx = { globalThis: {}, console };
-  vm.createContext(ctx);
-  vm.runInContext(code, ctx);
-  return ctx.certifications || ctx.globalThis.certifications;
+function loadCertificationsFromFile() {
+  // Limpiar caché para que re-ejecuciones carguen datos frescos
+  Object.keys(require.cache)
+    .filter(k => k.includes(`${path.sep}data${path.sep}certifications`))
+    .forEach(k => delete require.cache[k]);
+  return require('../data/certifications');
 }
 
 async function migrate() {
