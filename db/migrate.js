@@ -1,12 +1,13 @@
 // db/migrate.js
-// Migra los datos de data/certifications.js a PostgreSQL.
-// Uso: node db/migrate.js
+// Siembra los datos de data/certifications.js en PostgreSQL.
+// Uso manual: node db/migrate.js
+// También es importado por server.js para el seed automático en primer arranque.
 
 require('dotenv').config();
 const vm = require('vm');
 const fs = require('fs');
 const path = require('path');
-const { pool, initSchema } = require('./db');
+const { pool } = require('./db');
 
 async function loadCertificationsFromFile() {
   const filePath = path.join(__dirname, '../data/certifications.js');
@@ -18,9 +19,6 @@ async function loadCertificationsFromFile() {
 }
 
 async function migrate() {
-  console.log('Inicializando schema...');
-  await initSchema();
-
   console.log('Cargando datos de certifications.js...');
   const certifications = await loadCertificationsFromFile();
 
@@ -85,10 +83,16 @@ async function migrate() {
   }
 
   console.log('\nMigración completada.');
-  await pool.end();
 }
 
-migrate().catch(err => {
-  console.error('Error en migración:', err);
-  process.exit(1);
-});
+// Si se ejecuta directamente (node db/migrate.js), correr y salir
+if (require.main === module) {
+  migrate()
+    .then(() => pool.end())
+    .catch(err => {
+      console.error('Error en migración:', err);
+      process.exit(1);
+    });
+}
+
+module.exports = { migrate };

@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const { initSchema } = require('./db/db');
+const { initSchema, pool } = require('./db/db');
+const { migrate } = require('./db/migrate');
 
 const app = express();
 app.use(express.json());
@@ -18,11 +19,20 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-initSchema()
-  .then(() => {
-    app.listen(PORT, () => console.log(`SkillForge running on :${PORT}`));
-  })
-  .catch(err => {
-    console.error('Error inicializando base de datos:', err);
-    process.exit(1);
-  });
+async function start() {
+  await initSchema();
+
+  // Seed automático: si providers está vacío, cargar datos de certifications.js
+  const { rows } = await pool.query('SELECT COUNT(*) FROM providers');
+  if (parseInt(rows[0].count, 10) === 0) {
+    console.log('Providers vacío — ejecutando seed inicial...');
+    await migrate();
+  }
+
+  app.listen(PORT, () => console.log(`SkillForge running on :${PORT}`));
+}
+
+start().catch(err => {
+  console.error('Error al iniciar el servidor:', err);
+  process.exit(1);
+});

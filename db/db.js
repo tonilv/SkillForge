@@ -23,8 +23,9 @@ async function initSchema() {
       totp_enabled BOOLEAN DEFAULT FALSE,
       is_active BOOLEAN DEFAULT TRUE,
       created_at TIMESTAMPTZ DEFAULT NOW()
-    );
-
+    )
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS user_progress (
       id SERIAL PRIMARY KEY,
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -32,8 +33,9 @@ async function initSchema() {
       data JSONB DEFAULT '{}',
       updated_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE(user_id, cert_key)
-    );
-
+    )
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS user_enhanced (
       id SERIAL PRIMARY KEY,
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
@@ -43,23 +45,26 @@ async function initSchema() {
       achievements JSONB DEFAULT '{}',
       max_streak INTEGER DEFAULT 0,
       updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-
+    )
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS user_settings (
       id SERIAL PRIMARY KEY,
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
       theme VARCHAR(10) DEFAULT 'light',
       ai_config JSONB DEFAULT '{}',
       updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-
+    )
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS providers (
       id VARCHAR(50) PRIMARY KEY,
       name VARCHAR(100) NOT NULL,
       icon VARCHAR(10),
       sort_order INTEGER DEFAULT 0
-    );
-
+    )
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS certifications (
       id VARCHAR(50) NOT NULL,
       provider_id VARCHAR(50) REFERENCES providers(id) ON DELETE CASCADE,
@@ -79,7 +84,7 @@ async function initSchema() {
       live_practice_tasks JSONB DEFAULT '[]',
       sort_order INTEGER DEFAULT 0,
       PRIMARY KEY (provider_id, id)
-    );
+    )
   `);
 
   // Add new columns to existing databases (pg requires one statement per query)
