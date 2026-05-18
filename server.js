@@ -50,6 +50,10 @@ async function start() {
   if (parseInt(rows[0].count, 10) === 0) {
     console.log('Providers vacío — ejecutando seed inicial...');
     await migrate();
+  } else {
+    // Re-seed para incorporar nuevas certificaciones sin borrar datos existentes
+    console.log('Re-seed de certificaciones para incorporar novedades...');
+    await migrate();
   }
 
   app.listen(PORT, () => console.log(`SkillForge running on :${PORT}`));
