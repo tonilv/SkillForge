@@ -666,7 +666,7 @@ function renderCertificationMenu() {
     `;
   }
 
-  if (questionCount > 0) {
+  if (questionCount > 0 && currentUser && currentUser.is_admin) {
     menuItems += `
       <div class="menu-card" onclick="renderReviewPanel()" role="button" tabindex="0" aria-label="Revisar preguntas y respuestas">
         <div class="menu-card-icon">🔍</div>
