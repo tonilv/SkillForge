@@ -108,6 +108,10 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+[data-theme="dark"] .app-header {
+  background: #374151;
+}
+
 .header-inner {
   display: flex;
   align-items: center;

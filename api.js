@@ -15,6 +15,18 @@ function clearToken() {
   localStorage.removeItem('skillforge_token');
 }
 
+function getTrustedDeviceToken() {
+  return localStorage.getItem('skillforge_trusted_device');
+}
+
+function setTrustedDeviceToken(token) {
+  localStorage.setItem('skillforge_trusted_device', token);
+}
+
+function clearTrustedDeviceToken() {
+  localStorage.removeItem('skillforge_trusted_device');
+}
+
 async function apiReq(method, path, body) {
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
@@ -58,7 +70,7 @@ const API = {
     apiReq('POST', '/auth/register', { email, password, displayName }),
 
   login: (email, password) =>
-    apiReq('POST', '/auth/login', { email, password }),
+    apiReq('POST', '/auth/login', { email, password, trustedDevice: getTrustedDeviceToken() }),
 
   me: () => apiReq('GET', '/auth/me'),
 
@@ -92,4 +104,7 @@ const API = {
   updateUser: (id, data) => apiReq('PATCH', `/admin/users/${id}`, data),
   deleteUser: (id) => apiReq('DELETE', `/admin/users/${id}`),
   resetUser2FA: (id) => apiReq('POST', `/admin/users/${id}/reset-2fa`),
+
+  saveTrustedDevice: setTrustedDeviceToken,
+  clearTrustedDevice: clearTrustedDeviceToken,
 };

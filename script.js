@@ -2446,6 +2446,7 @@ function switchAuthTab(tab) {
 
 async function completeLogin(data) {
   setToken(data.token);
+  if (data.trustedDeviceToken) API.saveTrustedDevice(data.trustedDeviceToken);
   currentUser = data.user;
   pendingPreToken = null;
   await loadAllUserData();
@@ -2657,6 +2658,7 @@ async function handleVerify2FA() {
 
 function handleLogout() {
   clearToken();
+  API.clearTrustedDevice();
   currentUser = null;
   pendingPreToken = null;
   progressCache = {};

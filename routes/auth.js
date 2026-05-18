@@ -24,6 +24,14 @@ function makeFullToken(user) {
   );
 }
 
+function makeTrustedDeviceToken(userId) {
+  return jwt.sign(
+    { id: userId, purpose: 'trusted_device' },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+}
+
 function buildUser(row, id) {
   return {
     id: id || row.id,
@@ -40,7 +48,7 @@ router.post('/register', (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, trustedDevice } = req.body;
   if (!email || !password)
     return res.status(400).json({ error: 'Email y contraseña requeridos' });
 
@@ -61,6 +69,19 @@ router.post('/login', async (req, res) => {
 
     if (!user.totp_enabled) {
       return res.json({ needsSetup: true, preToken: makePreAuthToken(user) });
+    }
+
+    // Si hay un token de dispositivo de confianza válido, saltar 2FA
+    if (trustedDevice) {
+      try {
+        const decoded = jwt.verify(trustedDevice, process.env.JWT_SECRET);
+        if (decoded.purpose === 'trusted_device' && decoded.id === user.id) {
+          const fullUser = buildUser(user);
+          return res.json({ token: makeFullToken(fullUser), user: fullUser });
+        }
+      } catch {
+        // Token inválido o expirado — continuar con 2FA normal
+      }
     }
 
     res.json({ requires2fa: true, preToken: makePreAuthToken(user) });
@@ -110,7 +131,7 @@ router.post('/2fa/enable', preAuthMiddleware, async (req, res) => {
     await pool.query('UPDATE users SET totp_enabled = TRUE WHERE id = $1', [req.user.id]);
 
     const fullUser = buildUser(user, req.user.id);
-    res.json({ token: makeFullToken(fullUser), user: fullUser });
+    res.json({ token: makeFullToken(fullUser), user: fullUser, trustedDeviceToken: makeTrustedDeviceToken(req.user.id) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error activando 2FA' });
@@ -135,7 +156,7 @@ router.post('/2fa/verify', preAuthMiddleware, async (req, res) => {
     if (!valid) return res.status(401).json({ error: 'Código incorrecto' });
 
     const fullUser = buildUser(user, req.user.id);
-    res.json({ token: makeFullToken(fullUser), user: fullUser });
+    res.json({ token: makeFullToken(fullUser), user: fullUser, trustedDeviceToken: makeTrustedDeviceToken(req.user.id) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error verificando 2FA' });
