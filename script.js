@@ -2509,7 +2509,7 @@ async function handleLogin() {
     return;
   }
 
-  const btn = document.querySelector('#auth-login-form .auth-submit');
+  const btn = document.querySelector('#auth-main-card .auth-submit');
   btn.disabled = true;
   btn.textContent = 'Entrando...';
 
