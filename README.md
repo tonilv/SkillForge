@@ -10,6 +10,7 @@ Aplicación web educativa para preparar certificaciones técnicas mediante repas
 |-----------|---------------|-----------|
 | 🔴 Red Hat | **EX200** - Red Hat Certified System Administrator | 100 preguntas, 17 conceptos, 20 escenarios, práctica en vivo, consola interactiva |
 | 🔷 Microsoft | **AI-900** - Azure AI Fundamentals | 100 preguntas, 15 conceptos clave |
+| 🔷 Microsoft | **PL-900** - Microsoft Power Platform Fundamentals | 100 preguntas, 15 conceptos clave |
 
 ---
 
