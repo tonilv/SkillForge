@@ -62,6 +62,7 @@ let simulacroTimeRemaining = 90 * 60;
 let focusMode = false;
 let questionNotes = {}; // { certKey: { questionId: "nota" } }
 let sessionHistory = []; // Array de sesiones completadas
+let sessionStartTime = 0;
 
 // SRS (Spaced Repetition) - Algoritmo SM-2 simplificado
 let srsData = {}; // { certKey: { questionId: { interval:1, repetitions:0, easiness:2.5, nextReview:timestamp } } }
@@ -731,6 +732,7 @@ function startTestMode(failedOnly = false) {
   resetState();
   appState.mode = 'test';
   appState.sourceMode = 'test';
+  sessionStartTime = Date.now();
 
   const questions = getCurrentQuestions();
 
@@ -758,6 +760,7 @@ function renderTestQuestion() {
 
   if (qIndex >= total) {
     appState.sourceMode = 'test';
+    saveProgress();
     renderSummary();
     return;
   }
@@ -912,6 +915,7 @@ function startSimulacroMode() {
   resetState();
   appState.mode = 'simulacro';
   appState.sourceMode = 'simulacro';
+  sessionStartTime = Date.now();
   const all = shuffleArray(getCurrentQuestions());
   appState.testOrder = all.slice(0, Math.min(simulacroConfig.questionCount, all.length));
   simulacroTimeRemaining = simulacroConfig.timerSeconds;
@@ -1071,6 +1075,16 @@ function renderSummary() {
   const correct = appState.correctCount;
   const wrong = appState.wrongCount;
   const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
+  const duration = sessionStartTime ? Math.round((Date.now() - sessionStartTime) / 1000) : 0;
+
+  // Registrar sesión en el historial
+  const sessionData = { total, correct, wrong, percentage, duration, certKey: getCertKey(), timestamp: Date.now(), mode: appState.sourceMode };
+  sessionHistory.push(sessionData);
+  saveHistory();
+
+  // Comprobar logros y mostrar popups
+  const newUnlocks = checkAchievements(sessionData);
+  newUnlocks.forEach(a => showAchievementPopup(a));
 
   let messageClass = 'bad';
   let messageText = 'Necesitas reforzar conceptos antes del examen.';
@@ -2521,12 +2535,16 @@ async function handleLogin() {
       errorEl.style.display = '';
       return;
     }
-    pendingPreToken = data.preToken;
-    if (data.needsSetup) {
-      await load2FASetup();
-      show2FASetupCard();
-    } else if (data.requires2fa) {
-      show2FAVerifyCard();
+    if (data.token) {
+      await completeLogin(data);
+    } else {
+      pendingPreToken = data.preToken;
+      if (data.needsSetup) {
+        await load2FASetup();
+        show2FASetupCard();
+      } else if (data.requires2fa) {
+        show2FAVerifyCard();
+      }
     }
   } catch {
     errorEl.textContent = 'Error al conectar con el servidor.';
