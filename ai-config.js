@@ -583,7 +583,7 @@ async function testOpenAICompatibleConnection() {
   resultEl.textContent = '⏳ Probando conexión...';
 
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('skillforge_token');
     const res = await fetch('/api/data/ai-proxy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -992,7 +992,7 @@ async function callAiProvider(provider, prompt) {
   if (provider === 'openai_compatible') {
     const cfg = aiConfig.openai_compatible;
     const url = cfg.url.replace(/\/$/, '');
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('skillforge_token');
     const res = await fetch('/api/data/ai-proxy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
