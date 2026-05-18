@@ -107,4 +107,8 @@ const API = {
 
   saveTrustedDevice: setTrustedDeviceToken,
   clearTrustedDevice: clearTrustedDeviceToken,
+
+  getStudyMaterials: (certKey) => apiReq('GET', `/data/study/${certKey}`),
+  addStudyMaterial: (certKey, data) => apiReq('POST', `/data/study/${certKey}`, data),
+  deleteStudyMaterial: (certKey, id) => apiReq('DELETE', `/data/study/${certKey}/${id}`),
 };

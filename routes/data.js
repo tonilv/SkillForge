@@ -197,4 +197,49 @@ router.post('/aiconfig', async (req, res) => {
   }
 });
 
+// ── Material de estudio ───────────────────────────────────────────────────────
+
+router.get('/study/:certKey', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, type, title, content, created_at FROM study_material WHERE user_id = $1 AND cert_key = $2 ORDER BY created_at ASC',
+      [req.user.id, req.params.certKey]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+router.post('/study/:certKey', async (req, res) => {
+  const { type, title, content } = req.body;
+  if (!content && !title) return res.status(400).json({ error: 'Se requiere título o contenido' });
+  const validTypes = ['note', 'url', 'text'];
+  const safeType = validTypes.includes(type) ? type : 'note';
+  try {
+    const result = await pool.query(
+      'INSERT INTO study_material (user_id, cert_key, type, title, content) VALUES ($1, $2, $3, $4, $5) RETURNING id, type, title, content, created_at',
+      [req.user.id, req.params.certKey, safeType, title || '', content || '']
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
+router.delete('/study/:certKey/:id', async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM study_material WHERE id = $1 AND user_id = $2 AND cert_key = $3',
+      [req.params.id, req.user.id, req.params.certKey]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
 module.exports = router;

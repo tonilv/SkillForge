@@ -697,8 +697,49 @@ function renderCertificationMenu() {
         </div>
       ` : ''}
 
+      <div class="menu-section-header">
+        <span class="menu-section-icon">🎯</span>
+        <span>Práctica y Evaluación</span>
+      </div>
       <div class="menu-grid">
         ${menuItems}
+      </div>
+
+      <div class="menu-section-header menu-section-header--study">
+        <span class="menu-section-icon">📚</span>
+        <span>Estudio Inteligente</span>
+      </div>
+      <div class="menu-grid">
+        <div class="menu-card" onclick="renderTemario()" role="button" tabindex="0" aria-label="Ver temario">
+          <div class="menu-card-icon">📋</div>
+          <h3 class="menu-card-title">Temario</h3>
+          <p class="menu-card-desc">Explora los bloques del temario organizados por categorías. Marca los temas que ya dominas.</p>
+        </div>
+        <div class="menu-card" onclick="renderAddMaterial()" role="button" tabindex="0" aria-label="Añadir material de estudio">
+          <div class="menu-card-icon">📎</div>
+          <h3 class="menu-card-title">Añadir Material</h3>
+          <p class="menu-card-desc">Guarda enlaces, notas y apuntes propios asociados a esta certificación.</p>
+        </div>
+        <div class="menu-card" onclick="renderGenerateNotes()" role="button" tabindex="0" aria-label="Generar apuntes con IA">
+          <div class="menu-card-icon">✍️</div>
+          <h3 class="menu-card-title">Generar Apuntes</h3>
+          <p class="menu-card-desc">La IA analiza el contenido del temario y tu material para crear apuntes estructurados.</p>
+        </div>
+        <div class="menu-card" onclick="renderNotebookLM()" role="button" tabindex="0" aria-label="Exportar para NotebookLM">
+          <div class="menu-card-icon">🗒️</div>
+          <h3 class="menu-card-title">NotebookLM</h3>
+          <p class="menu-card-desc">Genera un documento completo en Markdown listo para importar en NotebookLM o Notion.</p>
+        </div>
+        <div class="menu-card" onclick="renderQuestionsFromTemario()" role="button" tabindex="0" aria-label="Generar preguntas desde el temario">
+          <div class="menu-card-icon">❓</div>
+          <h3 class="menu-card-title">Preguntas desde Temario</h3>
+          <p class="menu-card-desc">La IA genera nuevas preguntas de práctica a partir de los bloques del temario que elijas.</p>
+        </div>
+        <div class="menu-card" onclick="renderResumenExpress()" role="button" tabindex="0" aria-label="Ver resumen express">
+          <div class="menu-card-icon">⚡</div>
+          <h3 class="menu-card-title">Resumen Express</h3>
+          <p class="menu-card-desc">Vista rápida con estadísticas, temas críticos, comandos importantes y checklist de preparación.</p>
+        </div>
       </div>
 
       ${saved ? `

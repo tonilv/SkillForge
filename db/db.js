@@ -87,6 +87,18 @@ async function initSchema() {
     )
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS study_material (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      cert_key VARCHAR(50) NOT NULL,
+      type VARCHAR(20) NOT NULL DEFAULT 'note',
+      title VARCHAR(200),
+      content TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
   // Add new columns to existing databases (pg requires one statement per query)
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret VARCHAR(100)`);
