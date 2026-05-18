@@ -170,10 +170,155 @@ body {
 }
 
 /* -------------------- MAIN / APP -------------------- */
-#app {
+#page-body {
   flex: 1;
+  display: flex;
+  align-items: flex-start;
+}
+
+#page-content {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+#app {
   padding-top: var(--space-xl);
   padding-bottom: var(--space-xl);
+}
+
+/* -------------------- SIDEBAR DE ESTUDIO -------------------- */
+.study-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  overflow: hidden;
+  flex-shrink: 0;
+  width: 60px;
+  display: none;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+  transition: width 0.25s ease;
+  z-index: 10;
+}
+
+.study-sidebar.sidebar-expanded {
+  width: 220px;
+}
+
+.sidebar-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 0 0 16px;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-toggle-btn:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.sidebar-toggle-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+}
+
+.sidebar-brand {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--space-sm) 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 0 11px 16px;
+  border: none;
+  border-left: 3px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.sidebar-item:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.sidebar-item--active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+}
+
+.sidebar-item-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+  line-height: 1;
+}
+
+.sidebar-item-label {
+  opacity: 0;
+  transition: opacity 0.15s ease 0.05s;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.study-sidebar.sidebar-expanded .sidebar-item-label {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Mobile: hide sidebar, show cards instead */
+@media (max-width: 639px) {
+  .study-sidebar { display: none !important; }
+  .study-cards-mobile { display: block; }
+}
+
+@media (min-width: 640px) {
+  .study-cards-mobile { display: none; }
 }
 
 /* -------------------- TÍTULOS DE SECCIÓN -------------------- */
@@ -635,6 +780,7 @@ body {
   font-size: 1rem;
   font-family: inherit;
   text-align: left;
+  color: var(--color-text);
   background-color: var(--color-bg);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);

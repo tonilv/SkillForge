@@ -10,6 +10,7 @@
 
 function renderTemario() {
   appState.mode = 'temario';
+  setSidebarActive('temario');
   const app = clearApp();
   const cert = studyState.cert;
   const certKey = getCertKey();
@@ -100,6 +101,7 @@ let _studyMaterials = [];
 
 async function renderAddMaterial() {
   appState.mode = 'addMaterial';
+  setSidebarActive('material');
   const app = clearApp();
   const cert = studyState.cert;
   const certKey = getCertKey();
@@ -199,6 +201,7 @@ window.deleteStudyMaterial = async function(id) {
 
 async function renderGenerateNotes() {
   appState.mode = 'generateNotes';
+  setSidebarActive('notes');
   const app = clearApp();
   const cert = studyState.cert;
   const provider = getActiveProvider();
@@ -301,6 +304,7 @@ Usa Markdown con encabezados claros.`;
 
 async function renderNotebookLM() {
   appState.mode = 'notebookLM';
+  setSidebarActive('notebook');
   const app = clearApp();
   const cert = studyState.cert;
   const certKey = getCertKey();
@@ -396,6 +400,7 @@ async function renderNotebookLM() {
 
 async function renderQuestionsFromTemario() {
   appState.mode = 'questionsFromTemario';
+  setSidebarActive('questions');
   const app = clearApp();
   const cert = studyState.cert;
   const provider = getActiveProvider();
@@ -512,6 +517,7 @@ Responde en formato Markdown claro.`;
 
 function renderResumenExpress() {
   appState.mode = 'resumenExpress';
+  setSidebarActive('resumen');
   const app = clearApp();
   const cert = studyState.cert;
   const certKey = getCertKey();

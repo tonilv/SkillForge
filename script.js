@@ -475,6 +475,66 @@ function getDifficultyClass(difficulty) {
 }
 
 /* ============================================================
+   SIDEBAR DE ESTUDIO INTELIGENTE
+   ============================================================ */
+
+const STUDY_SIDEBAR_ITEMS = [
+  { key: 'temario',   icon: '📋', label: 'Temario',           fn: 'renderTemario()' },
+  { key: 'material',  icon: '📎', label: 'Añadir Material',   fn: 'renderAddMaterial()' },
+  { key: 'notes',     icon: '✍️',  label: 'Generar Apuntes',  fn: 'renderGenerateNotes()' },
+  { key: 'notebook',  icon: '🗒️', label: 'NotebookLM',        fn: 'renderNotebookLM()' },
+  { key: 'questions', icon: '❓', label: 'Preguntas IA',       fn: 'renderQuestionsFromTemario()' },
+  { key: 'resumen',   icon: '⚡', label: 'Resumen Express',    fn: 'renderResumenExpress()' },
+];
+
+function showCertSidebar(activeKey) {
+  const sidebar = document.getElementById('study-sidebar');
+  if (!sidebar) return;
+  const expanded = localStorage.getItem('skillforge_sidebar') !== 'collapsed';
+  sidebar.innerHTML = `
+    <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="${expanded ? 'Contraer' : 'Expandir'}">
+      <span class="sidebar-item-icon sidebar-toggle-icon">${expanded ? '◀' : '▶'}</span>
+      <span class="sidebar-item-label sidebar-brand">Estudio Inteligente</span>
+    </button>
+    <nav class="sidebar-nav">
+      ${STUDY_SIDEBAR_ITEMS.map(item => `
+        <button class="sidebar-item${activeKey === item.key ? ' sidebar-item--active' : ''}"
+                onclick="${item.fn}" title="${item.label}">
+          <span class="sidebar-item-icon">${item.icon}</span>
+          <span class="sidebar-item-label">${item.label}</span>
+        </button>
+      `).join('')}
+    </nav>
+  `;
+  sidebar.classList.toggle('sidebar-expanded', expanded);
+  sidebar.style.display = 'flex';
+}
+
+function hideCertSidebar() {
+  const sidebar = document.getElementById('study-sidebar');
+  if (sidebar) sidebar.style.display = 'none';
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('study-sidebar');
+  if (!sidebar) return;
+  const isExpanded = sidebar.classList.toggle('sidebar-expanded');
+  localStorage.setItem('skillforge_sidebar', isExpanded ? 'expanded' : 'collapsed');
+  const icon = sidebar.querySelector('.sidebar-toggle-icon');
+  if (icon) icon.textContent = isExpanded ? '◀' : '▶';
+  const btn = sidebar.querySelector('.sidebar-toggle-btn');
+  if (btn) btn.title = isExpanded ? 'Contraer' : 'Expandir';
+}
+
+function setSidebarActive(key) {
+  const sidebar = document.getElementById('study-sidebar');
+  if (!sidebar) return;
+  sidebar.querySelectorAll('.sidebar-item').forEach((btn, i) => {
+    btn.classList.toggle('sidebar-item--active', !!(STUDY_SIDEBAR_ITEMS[i] && STUDY_SIDEBAR_ITEMS[i].key === key));
+  });
+}
+
+/* ============================================================
    RENDER: PORTAL (SELECCIÓN DE PROVEEDOR)
    ============================================================ */
 
@@ -482,6 +542,7 @@ function renderPortal() {
   resetState();
   studyState = { providerId: null, certId: null, provider: null, cert: null };
   appState.mode = 'portal';
+  hideCertSidebar();
   const app = clearApp();
 
   const providers = Object.values(certifications);
@@ -516,6 +577,7 @@ function selectProvider(providerId) {
 
 function renderCertificationList(provider) {
   appState.mode = 'provider';
+  hideCertSidebar();
   const app = clearApp();
 
   const certs = Object.values(provider.certifications);
@@ -562,6 +624,7 @@ function selectCertification(providerId, certId) {
 function renderCertificationMenu() {
   resetState();
   appState.mode = 'menu';
+  showCertSidebar('');
   const app = clearApp();
 
   const cert = studyState.cert;
@@ -705,40 +768,42 @@ function renderCertificationMenu() {
         ${menuItems}
       </div>
 
-      <div class="menu-section-header menu-section-header--study">
-        <span class="menu-section-icon">📚</span>
-        <span>Estudio Inteligente</span>
-      </div>
-      <div class="menu-grid">
-        <div class="menu-card" onclick="renderTemario()" role="button" tabindex="0" aria-label="Ver temario">
-          <div class="menu-card-icon">📋</div>
-          <h3 class="menu-card-title">Temario</h3>
-          <p class="menu-card-desc">Explora los bloques del temario organizados por categorías. Marca los temas que ya dominas.</p>
+      <div class="study-cards-mobile">
+        <div class="menu-section-header menu-section-header--study">
+          <span class="menu-section-icon">📚</span>
+          <span>Estudio Inteligente</span>
         </div>
-        <div class="menu-card" onclick="renderAddMaterial()" role="button" tabindex="0" aria-label="Añadir material de estudio">
-          <div class="menu-card-icon">📎</div>
-          <h3 class="menu-card-title">Añadir Material</h3>
-          <p class="menu-card-desc">Guarda enlaces, notas y apuntes propios asociados a esta certificación.</p>
-        </div>
-        <div class="menu-card" onclick="renderGenerateNotes()" role="button" tabindex="0" aria-label="Generar apuntes con IA">
-          <div class="menu-card-icon">✍️</div>
-          <h3 class="menu-card-title">Generar Apuntes</h3>
-          <p class="menu-card-desc">La IA analiza el contenido del temario y tu material para crear apuntes estructurados.</p>
-        </div>
-        <div class="menu-card" onclick="renderNotebookLM()" role="button" tabindex="0" aria-label="Exportar para NotebookLM">
-          <div class="menu-card-icon">🗒️</div>
-          <h3 class="menu-card-title">NotebookLM</h3>
-          <p class="menu-card-desc">Genera un documento completo en Markdown listo para importar en NotebookLM o Notion.</p>
-        </div>
-        <div class="menu-card" onclick="renderQuestionsFromTemario()" role="button" tabindex="0" aria-label="Generar preguntas desde el temario">
-          <div class="menu-card-icon">❓</div>
-          <h3 class="menu-card-title">Preguntas desde Temario</h3>
-          <p class="menu-card-desc">La IA genera nuevas preguntas de práctica a partir de los bloques del temario que elijas.</p>
-        </div>
-        <div class="menu-card" onclick="renderResumenExpress()" role="button" tabindex="0" aria-label="Ver resumen express">
-          <div class="menu-card-icon">⚡</div>
-          <h3 class="menu-card-title">Resumen Express</h3>
-          <p class="menu-card-desc">Vista rápida con estadísticas, temas críticos, comandos importantes y checklist de preparación.</p>
+        <div class="menu-grid">
+          <div class="menu-card" onclick="renderTemario()" role="button" tabindex="0">
+            <div class="menu-card-icon">📋</div>
+            <h3 class="menu-card-title">Temario</h3>
+            <p class="menu-card-desc">Explora los bloques del temario organizados por categorías.</p>
+          </div>
+          <div class="menu-card" onclick="renderAddMaterial()" role="button" tabindex="0">
+            <div class="menu-card-icon">📎</div>
+            <h3 class="menu-card-title">Añadir Material</h3>
+            <p class="menu-card-desc">Guarda enlaces, notas y apuntes propios asociados a esta certificación.</p>
+          </div>
+          <div class="menu-card" onclick="renderGenerateNotes()" role="button" tabindex="0">
+            <div class="menu-card-icon">✍️</div>
+            <h3 class="menu-card-title">Generar Apuntes</h3>
+            <p class="menu-card-desc">La IA genera apuntes estructurados desde el temario.</p>
+          </div>
+          <div class="menu-card" onclick="renderNotebookLM()" role="button" tabindex="0">
+            <div class="menu-card-icon">🗒️</div>
+            <h3 class="menu-card-title">NotebookLM</h3>
+            <p class="menu-card-desc">Exporta el temario como Markdown para NotebookLM o Notion.</p>
+          </div>
+          <div class="menu-card" onclick="renderQuestionsFromTemario()" role="button" tabindex="0">
+            <div class="menu-card-icon">❓</div>
+            <h3 class="menu-card-title">Preguntas IA</h3>
+            <p class="menu-card-desc">Genera nuevas preguntas de práctica con IA.</p>
+          </div>
+          <div class="menu-card" onclick="renderResumenExpress()" role="button" tabindex="0">
+            <div class="menu-card-icon">⚡</div>
+            <h3 class="menu-card-title">Resumen Express</h3>
+            <p class="menu-card-desc">Estadísticas, temas críticos y checklist de preparación.</p>
+          </div>
         </div>
       </div>
 
@@ -2431,7 +2496,7 @@ let pendingPreToken = null;
 function showAuthScreen() {
   document.getElementById('auth-screen').style.display = 'flex';
   document.querySelector('.app-header').style.display = 'none';
-  document.getElementById('app').style.display = 'none';
+  document.getElementById('page-body').style.display = 'none';
   document.querySelector('.app-footer').style.display = 'none';
   showAuthMainCard();
 }
@@ -2463,7 +2528,7 @@ function show2FAVerifyCard() {
 function showChangePasswordCard() {
   document.getElementById('auth-screen').style.display = 'flex';
   document.querySelector('.app-header').style.display = 'none';
-  document.getElementById('app').style.display = 'none';
+  document.getElementById('page-body').style.display = 'none';
   document.querySelector('.app-footer').style.display = 'none';
   document.getElementById('auth-main-card').style.display = 'none';
   document.getElementById('auth-2fa-setup-card').style.display = 'none';
@@ -2478,7 +2543,7 @@ function showChangePasswordCard() {
 function showApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.querySelector('.app-header').style.display = '';
-  document.getElementById('app').style.display = '';
+  document.getElementById('page-body').style.display = 'flex';
   document.querySelector('.app-footer').style.display = '';
   const userEl = document.getElementById('header-user');
   if (currentUser && userEl) {
