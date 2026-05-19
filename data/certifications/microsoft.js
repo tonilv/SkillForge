@@ -6,6 +6,7 @@
     certifications: {
       ...require('./microsoft/ai900'),
       ...require('./microsoft/pl900'),
+      ...require('./microsoft/pl300'),
     }
   }
 };
