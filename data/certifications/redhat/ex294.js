@@ -48,7 +48,47 @@ module.exports = {
           { id: 37, certification: "ex294", category: "ansible-navigator", difficulty: "Medio", question: "¿Qué opción de ansible-navigator muestra la salida en modo texto estándar (no interactivo)?", options: ["-m stdout", "--output text", "--mode cli", "--format standard"], correctAnswer: 0, explanation: "ansible-navigator run playbook.yml -m stdout ejecuta el playbook mostrando la salida en modo texto estándar, similar a ansible-playbook. Sin -m stdout, abre la TUI interactiva." },
           { id: 38, certification: "ex294", category: "ansible-navigator", difficulty: "Medio", question: "¿Qué archivo configura el comportamiento de ansible-navigator en un proyecto?", options: ["ansible-navigator.yml", ".navigator.yml", "navigator.cfg", "ansible.navigator.cfg"], correctAnswer: 0, explanation: "ansible-navigator.yml (o .yaml) en el directorio del proyecto configura las opciones de ansible-navigator: imagen de ejecución, modo de salida, configuración de Ansible, logging, etc." },
           { id: 39, certification: "ex294", category: "RHEL System Roles", difficulty: "Fácil", question: "¿Qué paquete proporciona los RHEL System Roles y dónde se instalan?", options: ["rhel-system-roles, en /usr/share/ansible/roles/", "ansible-system-roles, en /etc/ansible/roles/", "linux-system-roles, en /usr/lib/ansible/roles/", "redhat-roles, en /opt/ansible/roles/"], correctAnswer: 0, explanation: "El paquete rhel-system-roles instala roles predefinidos en /usr/share/ansible/roles/. Incluye roles para timesync, selinux, network, firewall, kdump, postfix y otros servicios comunes de RHEL." },
-          { id: 40, certification: "ex294", category: "RHEL System Roles", difficulty: "Medio", question: "¿Qué variable se usa en el RHEL System Role 'timesync' para definir los servidores NTP?", options: ["timesync_ntp_servers", "ntp_servers", "chrony_servers", "timesync_servers"], correctAnswer: 0, explanation: "La variable timesync_ntp_servers acepta una lista de servidores NTP con sus opciones (hostname, iburst, pool, etc.). Es la variable principal del rol rhel-system-roles.timesync para configurar chrony." }
+          { id: 40, certification: "ex294", category: "RHEL System Roles", difficulty: "Medio", question: "¿Qué variable se usa en el RHEL System Role 'timesync' para definir los servidores NTP?", options: ["timesync_ntp_servers", "ntp_servers", "chrony_servers", "timesync_servers"], correctAnswer: 0, explanation: "La variable timesync_ntp_servers acepta una lista de servidores NTP con sus opciones (hostname, iburst, pool, etc.). Es la variable principal del rol rhel-system-roles.timesync para configurar chrony." },
+          { id: 41, certification: "ex294", category: "Instalación y Configuración", difficulty: "Fácil", question: "¿Cuántas conexiones paralelas establece Ansible por defecto (parámetro forks)?", options: ["5", "1", "10", "50"], correctAnswer: 0, explanation: "El valor por defecto de forks es 5. Se configura en ansible.cfg con 'forks = N' para ejecutar tareas en más hosts simultáneamente y reducir el tiempo total de ejecución." },
+          { id: 42, certification: "ex294", category: "Instalación y Configuración", difficulty: "Fácil", question: "¿Qué parámetro en ansible.cfg define el usuario SSH que se usará por defecto para conectarse a los hosts gestionados?", options: ["remote_user", "ansible_user", "ssh_user", "connect_user"], correctAnswer: 0, explanation: "remote_user en la sección [defaults] define el usuario SSH por defecto. Puede sobreescribirse por host en el inventario con la variable ansible_user." },
+          { id: 43, certification: "ex294", category: "Instalación y Configuración", difficulty: "Medio", question: "¿Qué valores puede tomar become_method en Ansible para la escalada de privilegios?", options: ["sudo, su, pbrun, pfexec, doas, dzdo", "sudo únicamente", "root y admin solamente", "ssh y sudo"], correctAnswer: 0, explanation: "become_method puede ser sudo (por defecto), su, pbrun, pfexec, doas, dzdo, ksu, runas y otros. Permite adaptar Ansible a diferentes mecanismos de escalada del sistema operativo." },
+          { id: 44, certification: "ex294", category: "Instalación y Configuración", difficulty: "Medio", question: "¿Qué directiva permite ejecutar las tareas como un usuario distinto de root al usar become: true?", options: ["become_user", "sudo_user", "run_as", "target_user"], correctAnswer: 0, explanation: "become_user especifica el usuario al que se escala cuando become: true está activo. Por defecto es root, pero puede cambiarse a cualquier otro usuario del sistema." },
+          { id: 45, certification: "ex294", category: "Inventarios", difficulty: "Medio", question: "¿Cómo se define un grupo padre que contiene otros grupos en un inventario INI?", options: ["[parent:children]", "[parent:groups]", "[children:parent]", "[group_parent]"], correctAnswer: 0, explanation: "La sección [nombre:children] define un grupo padre que contiene otros grupos. Los hosts de los grupos hijos también pertenecen automáticamente al grupo padre." },
+          { id: 46, certification: "ex294", category: "Inventarios", difficulty: "Fácil", question: "¿Qué variable del inventario especifica un puerto SSH diferente al estándar (22) para un host?", options: ["ansible_port", "ansible_ssh_port", "host_port", "ssh_port"], correctAnswer: 0, explanation: "ansible_port define el puerto TCP para conectarse al host. Si no se especifica, Ansible usa el puerto 22. Puede definirse en el inventario inline o en host_vars del host." },
+          { id: 47, certification: "ex294", category: "Inventarios", difficulty: "Fácil", question: "¿Qué variable del inventario especifica el usuario SSH para un host concreto, sobreescribiendo remote_user?", options: ["ansible_user", "remote_user", "ansible_ssh_user", "host_user"], correctAnswer: 0, explanation: "ansible_user sobreescribe remote_user para un host específico. Es la variable estándar del inventario para definir el usuario de conexión a nivel de host o grupo." },
+          { id: 48, certification: "ex294", category: "Inventarios", difficulty: "Avanzado", question: "¿Qué es un inventario dinámico en Ansible?", options: ["Un script ejecutable o plugin que genera el inventario en tiempo de ejecución devolviendo JSON", "Un archivo YAML que se actualiza automáticamente cada hora", "Un inventario con wildcards en los nombres de hosts", "Un inventario con variables calculadas mediante DAX"], correctAnswer: 0, explanation: "Un inventario dinámico es un script ejecutable o plugin que genera hosts y variables al momento de la ejecución, obteniendo datos de fuentes externas como AWS, Azure, VMware, CMDB, etc." },
+          { id: 49, certification: "ex294", category: "Módulos", difficulty: "Medio", question: "¿Qué módulo de Ansible permite añadir o modificar una línea específica en un archivo de configuración?", options: ["ansible.builtin.lineinfile", "ansible.builtin.file", "ansible.builtin.replace", "ansible.builtin.copy"], correctAnswer: 0, explanation: "lineinfile gestiona una línea concreta en un archivo mediante regexp. Puede añadir la línea si no existe, reemplazarla si coincide, o eliminarla. Es idempotente y apropiado para configuraciones basadas en líneas." },
+          { id: 50, certification: "ex294", category: "Módulos", difficulty: "Medio", question: "¿Qué módulo inserta un bloque de múltiples líneas en un archivo usando marcadores delimitadores?", options: ["ansible.builtin.blockinfile", "ansible.builtin.lineinfile", "ansible.builtin.copy", "ansible.builtin.template"], correctAnswer: 0, explanation: "blockinfile inserta y gestiona un bloque de texto entre marcadores # BEGIN ANSIBLE MANAGED BLOCK y # END ANSIBLE MANAGED BLOCK. Los marcadores pueden personalizarse con marker:." },
+          { id: 51, certification: "ex294", category: "Módulos", difficulty: "Medio", question: "¿Qué módulo de Ansible gestiona entradas en el crontab del sistema (cron jobs)?", options: ["ansible.builtin.cron", "ansible.builtin.schedule", "ansible.builtin.crond", "ansible.builtin.at"], correctAnswer: 0, explanation: "El módulo cron gestiona entradas en crontab. Permite definir nombre, minuto, hora, día, mes, día de semana y el comando a ejecutar. El campo name es obligatorio para idempotencia." },
+          { id: 52, certification: "ex294", category: "Módulos", difficulty: "Medio", question: "¿Qué módulo de Ansible descomprime un archivo comprimido (tar.gz, zip) en un host remoto?", options: ["ansible.builtin.unarchive", "ansible.builtin.extract", "ansible.builtin.decompress", "ansible.builtin.tar"], correctAnswer: 0, explanation: "unarchive copia un archivo comprimido desde el control node y lo descomprime en el host remoto. Con remote_src: yes descomprime un archivo ya existente en el host sin copiarlo." },
+          { id: 53, certification: "ex294", category: "Playbooks", difficulty: "Fácil", question: "¿Para qué sirven los 'tags' en un playbook de Ansible?", options: ["Permiten ejecutar selectivamente solo las tareas con esa etiqueta usando --tags", "Son metadatos informativos sin efecto en la ejecución", "Definen la prioridad de ejecución de las tareas", "Son obligatorios para todos los playbooks del examen"], correctAnswer: 0, explanation: "Los tags permiten etiquetar tareas, plays o roles y ejecutar solo las tareas etiquetadas con --tags 'nombre', o excluirlas con --skip-tags. Muy útiles para ejecutar fases específicas de un playbook largo." },
+          { id: 54, certification: "ex294", category: "Playbooks", difficulty: "Avanzado", question: "¿Cuál es la diferencia clave entre import_tasks e include_tasks?", options: ["import_tasks es estático (se procesa al parsear); include_tasks es dinámico (se procesa en ejecución, admite variables en el nombre de archivo)", "import_tasks es más lento que include_tasks", "include_tasks no puede usar variables; import_tasks sí", "Son completamente equivalentes sin diferencias"], correctAnswer: 0, explanation: "import_tasks es estático: el fichero se procesa al parsear, por lo que los tags heredados funcionan correctamente. include_tasks es dinámico: permite usar variables en el nombre del archivo y usarlo dentro de loops." },
+          { id: 55, certification: "ex294", category: "Playbooks", difficulty: "Avanzado", question: "¿Para qué sirve la directiva 'delegate_to' en una tarea de Ansible?", options: ["Ejecutar esa tarea en un host diferente al que está siendo gestionado actualmente", "Delegar la tarea a un rol externo de Galaxy", "Asignar mayor prioridad a la tarea", "Ejecutar la tarea en paralelo en todos los hosts"], correctAnswer: 0, explanation: "delegate_to ejecuta la tarea en un host diferente al del play. Muy útil para registrar IPs en DNS, añadir hosts a un balanceador, o ejecutar comandos locales con delegate_to: localhost." },
+          { id: 56, certification: "ex294", category: "Playbooks", difficulty: "Avanzado", question: "¿Qué directiva controla cuántos hosts se actualizan en cada lote durante un rolling update?", options: ["serial", "forks", "batch_size", "rolling_count"], correctAnswer: 0, explanation: "serial define cuántos hosts (número o porcentaje) se procesan por lote. Permite actualizar gradualmente evitando downtime total. Puede ser una lista como [1, 10, 100] para lotes crecientes." },
+          { id: 57, certification: "ex294", category: "Variables y Facts", difficulty: "Avanzado", question: "¿Cómo se accede a la variable 'http_port' del host 'server1.example.com' desde otro host?", options: ["{{ hostvars['server1.example.com']['http_port'] }}", "{{ vars['server1.example.com'].http_port }}", "{{ groups['server1.example.com']['http_port'] }}", "{{ inventory.server1.http_port }}"], correctAnswer: 0, explanation: "hostvars es un diccionario mágico que contiene todas las variables de todos los hosts del inventario. Requiere que los facts del host objetivo hayan sido recopilados previamente." },
+          { id: 58, certification: "ex294", category: "Variables y Facts", difficulty: "Medio", question: "¿Qué magic variable contiene el nombre del host actual tal como aparece definido en el inventario?", options: ["inventory_hostname", "ansible_hostname", "host_name", "current_host"], correctAnswer: 0, explanation: "inventory_hostname contiene el nombre del host exactamente como está en el inventario. ansible_hostname contiene el nombre del sistema operativo, que puede diferir del nombre del inventario." },
+          { id: 59, certification: "ex294", category: "Variables y Facts", difficulty: "Medio", question: "¿Qué magic variable contiene la lista de todos los hosts que pertenecen al grupo 'webservers'?", options: ["groups['webservers']", "inventory_groups['webservers']", "hostvars_group['webservers']", "group_hosts.webservers"], correctAnswer: 0, explanation: "groups es un diccionario mágico con todos los grupos del inventario como claves y listas de hosts como valores. groups['all'] contiene todos los hosts del inventario." },
+          { id: 60, certification: "ex294", category: "Variables y Facts", difficulty: "Medio", question: "¿Qué módulo permite crear o actualizar una variable con scope de host durante la ejecución del playbook?", options: ["ansible.builtin.set_fact", "ansible.builtin.vars", "ansible.builtin.define", "ansible.builtin.variable"], correctAnswer: 0, explanation: "set_fact crea o actualiza variables en tiempo de ejecución con scope de host. A diferencia de register, permite definir variables con lógica Jinja2 compleja. Persisten durante todo el play." },
+          { id: 61, certification: "ex294", category: "Roles", difficulty: "Avanzado", question: "¿Cuál es la diferencia entre import_role e include_role?", options: ["import_role es estático (procesado al parsear el playbook); include_role es dinámico (procesado en ejecución, admite loop: y when: dinámicos)", "import_role es más rápido; include_role más lento", "include_role requiere instalar desde Galaxy; import_role es para roles locales", "Son equivalentes sin diferencias funcionales"], correctAnswer: 0, explanation: "import_role es estático y procesa el rol al parsear el playbook. include_role es dinámico, se procesa en ejecución y puede usarse dentro de un loop: o con when: que depende de variables calculadas." },
+          { id: 62, certification: "ex294", category: "Roles", difficulty: "Medio", question: "¿Para qué sirve el archivo meta/main.yml en un rol de Ansible?", options: ["Definir dependencias de otros roles que se ejecutarán automáticamente antes del rol", "Almacenar las tareas principales del rol", "Definir las variables por defecto del rol", "Configurar los handlers del rol"], correctAnswer: 0, explanation: "meta/main.yml define metadatos del rol: dependencias (dependencies:), información del autor, plataformas soportadas y versiones de Ansible. Las dependencias listadas se ejecutan automáticamente antes del rol." },
+          { id: 63, certification: "ex294", category: "Roles", difficulty: "Medio", question: "¿Cómo se pasan variables específicas a un rol al incluirlo en la lista roles: de un play?", options: ["{ role: nombre_rol, variable: valor }", "roles: [nombre_rol] seguido de vars: variable: valor", "include_role: nombre: nombre_rol defaults: variable: valor", "role_vars: nombre_rol: variable: valor"], correctAnswer: 0, explanation: "En la lista roles: se puede pasar un diccionario con role: y las variables deseadas: { role: apache, http_port: 8080 }. Con include_role: se usa el bloque vars: para lo mismo." },
+          { id: 64, certification: "ex294", category: "Roles", difficulty: "Medio", question: "¿En qué orden busca Ansible roles si no se especifica roles_path en ansible.cfg?", options: ["./roles/, ~/.ansible/roles/, /usr/share/ansible/roles/, /etc/ansible/roles/", "Solo ./roles/", "Solo /etc/ansible/roles/", "Solo ~/.ansible/roles/"], correctAnswer: 0, explanation: "Ansible busca roles en múltiples ubicaciones por orden: el directorio roles/ del proyecto, ~/.ansible/roles, /usr/share/ansible/roles y /etc/ansible/roles. El parámetro roles_path en ansible.cfg puede personalizar esta búsqueda." },
+          { id: 65, certification: "ex294", category: "Colecciones", difficulty: "Fácil", question: "¿Qué comando instala la colección 'community.general' desde Ansible Galaxy?", options: ["ansible-galaxy collection install community.general", "ansible-galaxy install collection community.general", "ansible-galaxy collection download community.general", "ansible collection install community.general"], correctAnswer: 0, explanation: "ansible-galaxy collection install instala colecciones. El formato es namespace.collection_name. Con -r requirements.yml se instalan múltiples colecciones definidas en el archivo de requisitos." },
+          { id: 66, certification: "ex294", category: "Colecciones", difficulty: "Medio", question: "¿Dónde se instalan las colecciones de Ansible por defecto para el usuario actual?", options: ["~/.ansible/collections/ansible_collections/", "/etc/ansible/collections/", "/usr/share/ansible/collections/", "/var/lib/ansible/collections/"], correctAnswer: 0, explanation: "Las colecciones se instalan por defecto en ~/.ansible/collections/ansible_collections/namespace/collection/. La ruta puede configurarse con ANSIBLE_COLLECTIONS_PATH o collections_paths en ansible.cfg." },
+          { id: 67, certification: "ex294", category: "Colecciones", difficulty: "Medio", question: "¿Cómo se referencia correctamente el módulo 'postgresql_db' de la colección 'community.postgresql'?", options: ["community.postgresql.postgresql_db", "postgresql.community.db", "community/postgresql/postgresql_db", "ansible.community.postgresql_db"], correctAnswer: 0, explanation: "El Fully Qualified Collection Name (FQCN) tiene el formato namespace.collection.module_name. Usar FQCN es la práctica recomendada para evitar ambigüedad cuando varios módulos tienen el mismo nombre." },
+          { id: 68, certification: "ex294", category: "Colecciones", difficulty: "Medio", question: "¿Qué sección del archivo requirements.yml define las colecciones de Ansible a instalar?", options: ["collections:", "ansible_collections:", "galaxy_collections:", "packages:"], correctAnswer: 0, explanation: "El archivo requirements.yml tiene dos secciones: roles: para roles y collections: para colecciones. Cada entrada tiene al menos name: y opcionalmente version: y source:." },
+          { id: 69, certification: "ex294", category: "Ansible Vault", difficulty: "Medio", question: "¿Qué comando de ansible-vault cifra una cadena de texto inline para usarla directamente en YAML?", options: ["ansible-vault encrypt_string 'mi_secreto' --name 'variable'", "ansible-vault inline 'mi_secreto'", "ansible-vault string-encrypt 'mi_secreto'", "ansible-vault create-string 'mi_secreto'"], correctAnswer: 0, explanation: "encrypt_string cifra una cadena y la muestra en formato YAML listo para pegar directamente en variables. Incluye el prefijo !vault | que Ansible necesita para reconocer el string como valor cifrado." },
+          { id: 70, certification: "ex294", category: "Ansible Vault", difficulty: "Avanzado", question: "¿Cómo se incluye en YAML un string cifrado con ansible-vault encrypt_string?", options: ["variable: !vault |\\n  $ANSIBLE_VAULT;1.1;AES256\\n  ...", "variable: vault('...encrypted...')", "variable: {encrypted: '...'}", "variable: ansible_vault('...')"], correctAnswer: 0, explanation: "Los strings cifrados con encrypt_string se incluyen en YAML usando la etiqueta YAML !vault | seguida del contenido cifrado multilínea. Ansible los descifra automáticamente al leer las variables." },
+          { id: 71, certification: "ex294", category: "Ansible Vault", difficulty: "Avanzado", question: "¿Qué es un vault-id en Ansible y para qué sirve?", options: ["Una etiqueta que identifica qué contraseña usar para descifrar un vault específico", "El ID único generado al crear un archivo vault", "Un usuario con permisos para acceder al vault", "Una versión del algoritmo de cifrado AES"], correctAnswer: 0, explanation: "vault-id permite gestionar múltiples contraseñas de vault en un mismo proyecto. Cada vault-id tiene un label y una fuente de contraseña (archivo, prompt, script). Se usa con --vault-id label@source." },
+          { id: 72, certification: "ex294", category: "Ansible Vault", difficulty: "Medio", question: "¿Qué parámetro en ansible.cfg especifica el archivo de contraseña del vault por defecto?", options: ["vault_password_file", "vault_key_file", "vault_secret_file", "vault_pass"], correctAnswer: 0, explanation: "vault_password_file en la sección [defaults] de ansible.cfg define la ruta al archivo que contiene la contraseña del vault. Evita tener que especificar --vault-password-file en cada ejecución." },
+          { id: 73, certification: "ex294", category: "Templates Jinja2", difficulty: "Medio", question: "¿Qué filtro Jinja2 une los elementos de una lista en un string con separador personalizado?", options: ["{{ lista | join(', ') }}", "{{ lista | concat(', ') }}", "{{ lista | to_string(', ') }}", "{{ lista | implode(', ') }}"], correctAnswer: 0, explanation: "El filtro join() une los elementos de una lista en un string usando el separador indicado. Por ejemplo, ['a','b','c'] | join(', ') produce 'a, b, c'. Muy útil en templates para generar listas de valores." },
+          { id: 74, certification: "ex294", category: "Templates Jinja2", difficulty: "Medio", question: "¿Qué filtro Jinja2 devuelve un valor por defecto cuando una variable no está definida o es vacía?", options: ["{{ variable | default('valor') }}", "{{ variable | fallback('valor') }}", "{{ variable | or('valor') }}", "{{ variable | else('valor') }}"], correctAnswer: 0, explanation: "El filtro default() devuelve el valor alternativo si la variable no está definida, es None o vacía. Con default('x', true) también devuelve 'x' si la variable es False o 0." },
+          { id: 75, certification: "ex294", category: "Templates Jinja2", difficulty: "Fácil", question: "¿Qué filtro Jinja2 convierte un string a mayúsculas?", options: ["{{ texto | upper }}", "{{ texto | uppercase }}", "{{ texto | toUpper }}", "{{ texto | capitalize_all }}"], correctAnswer: 0, explanation: "El filtro upper convierte todo el texto a mayúsculas. Los relacionados son: lower (minúsculas), capitalize (primera letra en mayúscula), title (primera letra de cada palabra en mayúscula)." },
+          { id: 76, certification: "ex294", category: "Manejo de Errores", difficulty: "Avanzado", question: "¿Qué módulo de Ansible valida condiciones y detiene el play con mensaje personalizado si no se cumplen?", options: ["ansible.builtin.assert", "ansible.builtin.validate", "ansible.builtin.check", "ansible.builtin.verify"], correctAnswer: 0, explanation: "El módulo assert evalúa condiciones en 'that:'. Si alguna falla, el play para con el mensaje de fail_msg. Con quiet: true no imprime nada cuando tiene éxito. Ideal para validar precondiciones." },
+          { id: 77, certification: "ex294", category: "ansible-navigator", difficulty: "Medio", question: "¿Qué subcomando de ansible-navigator lista los Execution Environments disponibles localmente?", options: ["ansible-navigator images", "ansible-navigator ee-list", "ansible-navigator containers", "ansible-navigator list-ee"], correctAnswer: 0, explanation: "ansible-navigator images (con -m stdout para modo no interactivo) lista las imágenes de Execution Environment disponibles, mostrando nombre, etiqueta y paquetes Ansible instalados en cada una." },
+          { id: 78, certification: "ex294", category: "ansible-navigator", difficulty: "Medio", question: "¿Cómo se consulta la documentación del módulo 'user' con ansible-navigator en modo no interactivo?", options: ["ansible-navigator doc user -m stdout", "ansible-navigator help user -m stdout", "ansible-navigator docs ansible.builtin.user", "ansible-navigator man user"], correctAnswer: 0, explanation: "ansible-navigator doc permite ver documentación de módulos y plugins. Con -m stdout muestra salida en texto plano como ansible-doc, pero con la ventaja de usar el EE y ver módulos de colecciones instaladas en él." },
+          { id: 79, certification: "ex294", category: "Comandos Ad-hoc", difficulty: "Fácil", question: "¿Qué opción de ansible-playbook restringe la ejecución a un subconjunto específico de hosts o grupos?", options: ["--limit 'patron'", "--hosts 'patron'", "--filter 'patron'", "--only 'patron'"], correctAnswer: 0, explanation: "--limit (o -l) restringe la ejecución a los hosts que coincidan con el patrón. Por ejemplo: --limit 'webservers:!server3' ejecuta en webservers excepto server3. Admite wildcards y combinaciones con : y !." },
+          { id: 80, certification: "ex294", category: "Playbooks", difficulty: "Fácil", question: "¿Qué opción de ansible-playbook ejecuta únicamente las tareas que tienen una etiqueta específica?", options: ["--tags 'nombre_tag'", "--run-tags 'nombre_tag'", "--select-tags 'nombre_tag'", "--execute-tags 'nombre_tag'"], correctAnswer: 0, explanation: "--tags ejecuta solo las tareas con esa etiqueta. --skip-tags las excluye. Se pueden especificar múltiples tags separados por coma. La etiqueta especial 'all' ejecuta todas las tareas." }
         ],
         concepts: [
           { title: "Instalación y ansible.cfg", description: "Configuración del nodo de control, archivo ansible.cfg y estructura del proyecto Ansible.", commands: ["dnf install ansible-core", "ansible --version", "ansible-config dump --only-changed", "ansible all -m ping"], typicalError: "No configurar remote_user o become en ansible.cfg, causando fallos de autenticación en todos los plays.", checklist: ["Instalar ansible-core con dnf", "Crear ansible.cfg en el directorio del proyecto", "Definir inventory, remote_user y become: true", "Verificar conectividad con ansible all -m ping"] },
@@ -65,7 +105,21 @@ module.exports = {
           { title: "Control de Errores", description: "ignore_errors, failed_when, changed_when para control fino. block/rescue/always para manejo estructurado tipo try/catch.", commands: ["# ignore_errors: true", "# failed_when: result.rc != 0", "# changed_when: false", "# block / rescue / always"], typicalError: "Usar ignore_errors en todo el play en lugar de en tareas específicas, ocultando fallos reales.", checklist: ["Usar block/rescue/always para manejo estructurado de errores", "Aplicar ignore_errors solo en tareas donde el fallo es esperado", "Usar failed_when para definir criterios de fallo personalizados", "Usar changed_when: false en tareas de solo lectura para evitar notificaciones"] },
           { title: "Condiciones y Bucles", description: "when: para ejecución condicional. loop: para iteración. Variables de facts como ansible_os_family en condiciones.", commands: ["# when: ansible_os_family == 'RedHat'", "# loop: ['httpd', 'mod_ssl', 'php']", "# when: result.rc != 0", "# loop: {{ lista_variable }}"], typicalError: "Poner {{ }} alrededor de la expresión 'when', lo cual no es necesario y puede causar errores.", checklist: ["Usar when: sin {{ }} alrededor de la expresión", "Combinar condiciones con 'and' y 'or'", "Referenciar el elemento del bucle con {{ item }}", "Para diccionarios en bucle usar {{ item.nombre_clave }}"] },
           { title: "ansible-navigator y EE", description: "Herramienta moderna que reemplaza a ansible-playbook en entornos con Execution Environments (contenedores).", commands: ["ansible-navigator run site.yml -m stdout", "ansible-navigator doc dnf -m stdout", "ansible-navigator images -m stdout", "ansible-navigator collections -m stdout"], typicalError: "No instalar podman o no tener la imagen EE disponible, causando fallo al arrancar el contenedor.", checklist: ["Instalar ansible-navigator con pip install ansible-navigator", "Crear ansible-navigator.yml en el proyecto", "Usar -m stdout para salida no interactiva (equivalente a ansible-playbook)", "Verificar EE disponibles con ansible-navigator images -m stdout"] },
-          { title: "RHEL System Roles", description: "Roles predefinidos de Red Hat para timesync, selinux, network, firewall, kdump. Instalados via dnf.", commands: ["dnf install rhel-system-roles", "ls /usr/share/ansible/roles/", "# roles_path = /usr/share/ansible/roles en ansible.cfg", "ansible-playbook timesync.yml"], typicalError: "No añadir /usr/share/ansible/roles/ al roles_path en ansible.cfg, causando que Ansible no encuentre los roles.", checklist: ["Instalar con: dnf install rhel-system-roles", "Localizar roles en /usr/share/ansible/roles/", "Revisar README.md de cada rol para conocer sus variables", "Añadir roles_path = /usr/share/ansible/roles en ansible.cfg si es necesario"] }
+          { title: "RHEL System Roles", description: "Roles predefinidos de Red Hat para timesync, selinux, network, firewall, kdump. Instalados via dnf.", commands: ["dnf install rhel-system-roles", "ls /usr/share/ansible/roles/", "# roles_path = /usr/share/ansible/roles en ansible.cfg", "ansible-playbook timesync.yml"], typicalError: "No añadir /usr/share/ansible/roles/ al roles_path en ansible.cfg, causando que Ansible no encuentre los roles.", checklist: ["Instalar con: dnf install rhel-system-roles", "Localizar roles en /usr/share/ansible/roles/", "Revisar README.md de cada rol para conocer sus variables", "Añadir roles_path = /usr/share/ansible/roles en ansible.cfg si es necesario"] },
+          { title: "Magic Variables", description: "Variables especiales de Ansible: hostvars, groups, group_names, inventory_hostname, inventory_hostname_short, ansible_play_hosts.", commands: ["{{ hostvars['server1']['ansible_default_ipv4']['address'] }}", "{{ groups['webservers'] }}", "{{ inventory_hostname }}", "{{ group_names }}"], typicalError: "Intentar acceder a hostvars de un host cuyos facts no han sido recopilados, causando KeyError.", checklist: ["Usar inventory_hostname para el nombre del host actual en el inventario", "Usar hostvars['host']['var'] para acceder a variables de otros hosts", "Verificar que gather_facts: true antes de usar facts via hostvars", "Usar groups['nombre'] para obtener lista de hosts de un grupo"] },
+          { title: "Tags en Playbooks", description: "Etiquetas para ejecución selectiva. --tags ejecuta solo esas tareas; --skip-tags las excluye. Tags especiales: always, never, all.", commands: ["ansible-playbook site.yml --tags install", "ansible-playbook site.yml --skip-tags debug", "ansible-playbook site.yml --list-tags", "# tags: [install, configure]"], typicalError: "Poner tags en el play entero en lugar de en tareas individuales, haciendo que todas las tareas tengan el mismo tag.", checklist: ["Etiquetar tareas con tags: [nombre1, nombre2]", "Usar --tags para ejecutar solo fases específicas (install, configure, deploy)", "Usar --list-tags para ver todos los tags disponibles en un playbook", "La etiqueta 'always' se ejecuta siempre; 'never' solo con --tags never"] },
+          { title: "import_tasks vs include_tasks", description: "import_tasks es estático (parse time); include_tasks es dinámico (runtime). Impacto en tags heredados y uso con loops.", commands: ["# import_tasks: tareas.yml", "# include_tasks: '{{ entorno }}_tasks.yml'", "# include_tasks en loop: loop: [dev, prod]", "# tags heredados funcionan con import, no con include"], typicalError: "Usar import_tasks cuando se necesita un nombre de archivo dinámico con variable, causando error al parsear.", checklist: ["Usar import_tasks cuando el nombre de archivo es estático", "Usar include_tasks cuando el nombre depende de variables o se usa en un loop", "Los tags aplicados al import_tasks se heredan a las tareas importadas", "Los tags de include_tasks no se propagan automáticamente a las tareas incluidas"] },
+          { title: "Escalada de Privilegios Avanzada", description: "become, become_user, become_method y become_flags. Configurables en ansible.cfg, play, tarea o inventario.", commands: ["# become: true", "# become_user: postgres", "# become_method: sudo", "# become_flags: '-H -S'"], typicalError: "Olvidar configurar sudo sin contraseña en los hosts gestionados o usar become_method incorrecto para el SO.", checklist: ["Configurar become: true por defecto en ansible.cfg si todos los plays lo necesitan", "Usar become_user para escalar a un usuario distinto de root", "become_method: sudo es el predeterminado; cambiar a su si el sistema lo requiere", "Verificar que el remote_user tiene permisos sudo sin contraseña (NOPASSWD)"] },
+          { title: "Colecciones de Ansible", description: "Paquetes que agrupan módulos, roles y plugins. Formato namespace.collection. Gestión con ansible-galaxy collection.", commands: ["ansible-galaxy collection install community.general", "ansible-galaxy collection install -r requirements.yml", "ansible-galaxy collection list", "# FQCN: community.general.ini_file"], typicalError: "No usar FQCN en playbooks, causando que Ansible use el módulo incorrecto si hay nombres duplicados.", checklist: ["Instalar colecciones con ansible-galaxy collection install", "Añadir colecciones a requirements.yml con name: y version:", "Usar FQCN (namespace.collection.module) en los playbooks", "Verificar colecciones disponibles con ansible-galaxy collection list"] },
+          { title: "lineinfile y blockinfile", description: "Módulos para editar archivos de configuración de forma idempotente sin sobreescribir el archivo completo.", commands: ["# lineinfile: path, line, regexp, state", "# blockinfile: path, block, marker", "ansible-doc lineinfile", "ansible-doc blockinfile"], typicalError: "No definir regexp en lineinfile, causando que se añadan líneas duplicadas en cada ejecución.", checklist: ["Usar regexp en lineinfile para identificar la línea a reemplazar", "lineinfile: state: absent para eliminar una línea", "blockinfile: con marker personalizado para identificar el bloque", "Usar backup: yes para crear copia de seguridad antes de modificar"] },
+          { title: "Módulos de Archivado", description: "archive para comprimir, unarchive para descomprimir, fetch para traer archivos del host al control node.", commands: ["# archive: path, dest, format", "# unarchive: src, dest, remote_src", "# fetch: src, dest, flat", "ansible-doc fetch"], typicalError: "Confundir copy (control→remoto) con fetch (remoto→control). fetch trae archivos desde el host al control node.", checklist: ["Usar copy para enviar archivos del control node a hosts remotos", "Usar fetch para recuperar archivos de hosts remotos al control node", "unarchive con remote_src: yes para descomprimir archivos ya en el host", "archive para crear archivos comprimidos en el host remoto"] },
+          { title: "Módulo cron", description: "Gestión de tareas programadas en crontab. El campo name es obligatorio para idempotencia.", commands: ["# cron: name, minute, hour, day, month, weekday, job", "# cron: name: 'backup' state: absent  # eliminar", "ansible-doc cron", "# cron: user: postgres job: '/usr/bin/vacuumdb'"], typicalError: "No especificar name: en el módulo cron, impidiendo que Ansible identifique y gestione la tarea idempotentemente.", checklist: ["Siempre especificar name: para identificar la tarea en crontab", "Usar state: absent para eliminar una tarea por nombre", "Especificar user: para crear cron de un usuario diferente al remoto", "Los valores por defecto (* ) significan 'cada' minuto/hora/etc"] },
+          { title: "delegate_to y local_action", description: "delegate_to ejecuta una tarea en otro host. delegate_to: localhost equivale a local_action y ejecuta en el control node.", commands: ["# delegate_to: localhost", "# delegate_to: loadbalancer.example.com", "# local_action: module arg1=val1", "# delegate_facts: true para almacenar facts del delegado"], typicalError: "Olvidar que cuando se usa delegate_to, las variables del host original siguen siendo accesibles (inventory_hostname mantiene su valor).", checklist: ["Usar delegate_to: localhost para tareas que se ejecutan en el control node", "El contexto del host original (variables, facts) está disponible en la tarea delegada", "local_action es equivalente a delegate_to: localhost", "Usar delegate_facts: true si necesitas que los facts se asignen al host delegado"] },
+          { title: "Filtros Jinja2 Esenciales", description: "Filtros para transformar variables en templates y playbooks: join, default, upper, lower, int, bool, selectattr, map, dict2items.", commands: ["{{ lista | join(', ') }}", "{{ var | default('N/A') }}", "{{ texto | upper }}", "{{ lista | selectattr('activo', 'equalto', true) | list }}"], typicalError: "Encadenar filtros en orden incorrecto o usar filtros que no están disponibles en la versión de Jinja2 instalada.", checklist: ["int/float/bool para conversión de tipos", "default() para valores opcionales sin definir", "selectattr/map/reject para filtrar y transformar listas de objetos", "regex_replace para transformaciones de texto avanzadas"] },
+          { title: "Inventario Dinámico", description: "Scripts o plugins que generan inventario en tiempo de ejecución desde fuentes externas (AWS, Azure, VMware, GCP, CMDB).", commands: ["ansible-inventory -i inventory_script.py --list", "ansible-inventory -i aws_ec2.yml --graph", "# plugin: amazon.aws.aws_ec2", "chmod +x inventory_script.py"], typicalError: "Olvidar dar permisos de ejecución al script de inventario dinámico o no configurar correctamente las credenciales de la API.", checklist: ["El script debe ser ejecutable y devolver JSON válido con _meta", "Los plugins de inventario se configuran en archivos YAML con nombre *.aws_ec2.yml, etc.", "Usar ansible-inventory --list para depurar el inventario generado", "Configurar credenciales de API mediante variables de entorno o archivos de credenciales"] },
+          { title: "ansible.cfg Avanzado", description: "Parámetros clave: forks, timeout, poll_interval, gathering, any_errors_fatal, callback_plugins, retry_files_enabled.", commands: ["# forks = 20", "# timeout = 30", "# gathering = smart  # cachea facts", "# any_errors_fatal = true"], typicalError: "No aumentar forks cuando hay muchos hosts, haciendo que la ejecución sea innecesariamente lenta.", checklist: ["Aumentar forks (default 5) para inventarios grandes", "gathering = smart cachea facts y reduce tiempo de ejecución", "any_errors_fatal = true detiene todos los hosts si uno falla", "retry_files_enabled = false evita crear archivos .retry en el directorio"] },
+          { title: "--check, --diff y assert", description: "--check simula sin cambiar. --diff muestra diferencias de archivos. assert valida precondiciones antes de ejecutar cambios.", commands: ["ansible-playbook --check site.yml", "ansible-playbook --check --diff site.yml", "# assert: that: [condicion1, condicion2]", "# assert: fail_msg: 'error' success_msg: 'ok'"], typicalError: "Confiar en --check sin verificar que todos los módulos soportan el modo check (algunos módulos no lo implementan correctamente).", checklist: ["Usar --check antes de aplicar cambios en producción", "Añadir --diff para ver qué líneas cambian en archivos de configuración", "Usar assert al inicio del play para validar que el entorno es el esperado", "assert: quiet: true evita output redundante cuando las condiciones se cumplen"] },
+          { title: "Rolling Updates con serial", description: "serial para actualizar gradualmente sin downtime. Combinado con max_fail_percentage para controlar tolerancia a fallos.", commands: ["# serial: 1  # un host a la vez", "# serial: '25%'  # 25% del inventario", "# serial: [1, 5, 25]  # lotes crecientes", "# max_fail_percentage: 20"], typicalError: "No combinar serial con handlers correctamente, dejando servicios sin reiniciar en los primeros lotes.", checklist: ["serial: 1 para actualizaciones muy conservadoras", "serial: '20%' para balancear velocidad y disponibilidad", "max_fail_percentage: N detiene si más de N% de hosts fallan", "Usar pre_tasks y post_tasks para desregistrar/registrar en balanceador"] }
         ],
         scenarios: [
           { id: 1, title: "Configurar nodo de control Ansible", category: "Configuración", difficulty: "básico", context: "Debes preparar un nodo de control Ansible para gestionar un grupo de servidores web en tu organización.", objective: "Instalar Ansible, crear inventario con grupo webservers y verificar conectividad.", steps: ["Instalar ansible-core: dnf install ansible-core", "Crear directorio del proyecto: mkdir ~/ansible-project && cd ~/ansible-project", "Crear ansible.cfg con los parámetros: inventory, remote_user, become=True, host_key_checking=False", "Crear inventory con grupo [webservers] y los hosts", "Verificar conectividad: ansible webservers -m ping", "Listar estructura del inventario: ansible-inventory --graph"], recommendedCommands: ["dnf install ansible-core", "ansible --version", "ansible webservers -m ping", "ansible-inventory --graph"], validation: "ansible webservers -m ping debe devolver SUCCESS en todos los hosts.", commonErrors: ["No configurar remote_user o become en ansible.cfg", "Hosts no alcanzables por SSH sin clave configurada", "Inventario con sintaxis INI incorrecta"] },
@@ -77,7 +131,17 @@ module.exports = {
           { id: 7, title: "Gestionar usuarios y claves SSH con Ansible", category: "Playbooks", difficulty: "básico", context: "Debes crear usuarios, grupos y distribuir claves SSH en múltiples servidores de forma automatizada.", objective: "Playbook que cree grupo 'webadmins', usuarios con clave SSH y configuración de sudo.", steps: ["Crear playbook users.yml con become: true", "Añadir tarea para crear grupo webadmins: módulo group (name: webadmins, state: present)", "Añadir tarea para crear usuario: módulo user (name, groups: webadmins, shell: /bin/bash)", "Añadir tarea para distribuir clave SSH: módulo authorized_key (user, key, state: present)", "Añadir tarea para configurar sudo: módulo copy para /etc/sudoers.d/webadmins", "Ejecutar y verificar: ansible all -a 'id webadmin1'"], recommendedCommands: ["ansible-playbook users.yml", "ansible all -a 'id webadmin1'", "ansible all -a 'getent group webadmins'", "ansible all -m shell -a 'ls /home/webadmin1/.ssh/authorized_keys'"], validation: "Usuarios existen en todos los hosts, pertenecen al grupo webadmins y pueden autenticarse con su clave SSH.", commonErrors: ["No especificar state: present en módulo user (aunque es el default, es más explícito)", "Clave pública con formato incorrecto o espacios extra", "Permisos incorrectos en .ssh o authorized_keys"] },
           { id: 8, title: "Configurar SELinux con Ansible", category: "Seguridad", difficulty: "medio", context: "Debes asegurar que SELinux está en modo enforcing y configurar booleanos para permitir conexiones de red a Apache.", objective: "Usar módulo selinux para el modo y seboolean para booleanos de forma persistente.", steps: ["Crear playbook selinux.yml con become: true", "Añadir tarea con módulo selinux: policy: targeted, state: enforcing", "Añadir tarea con módulo seboolean: name: httpd_can_network_connect, state: true, persistent: yes", "Añadir tarea para cambiar contexto SELinux de directorio personalizado: módulo sefcontext", "Añadir tarea para aplicar contextos: módulo command con restorecon -Rv /path", "Verificar: ansible all -a 'getenforce' && ansible all -m shell -a 'getsebool httpd_can_network_connect'"], recommendedCommands: ["ansible-playbook selinux.yml", "ansible all -a 'getenforce'", "ansible all -m shell -a 'getsebool httpd_can_network_connect'", "ansible all -m shell -a 'ls -Z /var/www/'"], validation: "SELinux en enforcing, booleano httpd_can_network_connect activado de forma persistente.", commonErrors: ["Usar command con setsebool en vez del módulo seboolean", "No usar persistent: yes haciendo el booleano temporal", "Olvidar restorecon después de cambiar contextos SELinux"] },
           { id: 9, title: "Usar RHEL System Role para NTP", category: "System Roles", difficulty: "básico", context: "Debes configurar la sincronización de tiempo en todos los servidores usando el RHEL System Role de timesync.", objective: "Instalar rhel-system-roles y crear playbook que configure chrony con servidores NTP específicos.", steps: ["Instalar: dnf install rhel-system-roles", "Localizar el rol: ls /usr/share/ansible/roles/ | grep timesync", "Revisar variables: cat /usr/share/ansible/roles/rhel-system-roles.timesync/README.md", "Añadir roles_path = /usr/share/ansible/roles en ansible.cfg si no está", "Crear playbook timesync.yml con la variable timesync_ntp_servers (lista de servidores)", "Ejecutar y verificar: ansible all -a 'chronyc sources'"], recommendedCommands: ["dnf install rhel-system-roles", "ls /usr/share/ansible/roles/", "ansible-playbook timesync.yml", "ansible all -a 'chronyc tracking'"], validation: "chronyc sources muestra los servidores NTP configurados y el tiempo está sincronizado.", commonErrors: ["Buscar el rol en /etc/ansible/roles en lugar de /usr/share/ansible/roles/", "No añadir /usr/share/ansible/roles/ a roles_path en ansible.cfg", "No revisar el README del rol para la sintaxis correcta de timesync_ntp_servers"] },
-          { id: 10, title: "Manejo de errores con block/rescue/always", category: "Manejo de Errores", difficulty: "avanzado", context: "Tu playbook hace cambios críticos y debes garantizar un rollback limpio si algo falla.", objective: "Implementar block/rescue/always para manejo estructurado de errores y estado consistente.", steps: ["Crear estructura block: con las tareas críticas principales", "Añadir rescue: con las tareas de rollback si algo en block falla", "Añadir always: con las tareas de limpieza que deben ejecutarse siempre", "Añadir tarea de debug en rescue para mostrar el error: {{ ansible_failed_result }}", "Probar el escenario de fallo con failed_when artificial", "Verificar que rescue ejecuta el rollback y always siempre se ejecuta"], recommendedCommands: ["ansible-playbook site.yml -v", "ansible-playbook site.yml --check", "ansible-playbook site.yml -e 'simulate_failure=true'", "ansible-playbook site.yml -v 2>&1 | grep -E 'TASK|RESCUE|ALWAYS'"], validation: "En caso de fallo en block, rescue ejecuta rollback. always ejecuta limpieza siempre.", commonErrors: ["Olvidar que rescue solo se ejecuta cuando falla algo en el block", "No incluir tareas de rollback idempotentes en rescue", "Usar ignore_errors en lugar de block/rescue para manejo estructurado"] }
+          { id: 10, title: "Manejo de errores con block/rescue/always", category: "Manejo de Errores", difficulty: "avanzado", context: "Tu playbook hace cambios críticos y debes garantizar un rollback limpio si algo falla.", objective: "Implementar block/rescue/always para manejo estructurado de errores y estado consistente.", steps: ["Crear estructura block: con las tareas críticas principales", "Añadir rescue: con las tareas de rollback si algo en block falla", "Añadir always: con las tareas de limpieza que deben ejecutarse siempre", "Añadir tarea de debug en rescue para mostrar el error: {{ ansible_failed_result }}", "Probar el escenario de fallo con failed_when artificial", "Verificar que rescue ejecuta el rollback y always siempre se ejecuta"], recommendedCommands: ["ansible-playbook site.yml -v", "ansible-playbook site.yml --check", "ansible-playbook site.yml -e 'simulate_failure=true'", "ansible-playbook site.yml -v 2>&1 | grep -E 'TASK|RESCUE|ALWAYS'"], validation: "En caso de fallo en block, rescue ejecuta rollback. always ejecuta limpieza siempre.", commonErrors: ["Olvidar que rescue solo se ejecuta cuando falla algo en el block", "No incluir tareas de rollback idempotentes en rescue", "Usar ignore_errors en lugar de block/rescue para manejo estructurado"] },
+          { id: 11, title: "Playbook con tags para ejecución selectiva", category: "Tags", difficulty: "medio", context: "Tienes un playbook que instala, configura y despliega una aplicación. En producción solo quieres ejecutar el despliegue.", objective: "Etiquetar las tareas por fases y usar --tags para ejecutar solo el despliegue.", steps: ["Añadir tags: [install] a las tareas de instalación de paquetes", "Añadir tags: [configure] a las tareas de configuración", "Añadir tags: [deploy] a las tareas de despliegue de código", "Verificar los tags disponibles: ansible-playbook site.yml --list-tags", "Ejecutar solo deploy: ansible-playbook site.yml --tags deploy", "Ejecutar todo excepto debug: ansible-playbook site.yml --skip-tags debug"], recommendedCommands: ["ansible-playbook site.yml --list-tags", "ansible-playbook site.yml --tags install,configure", "ansible-playbook site.yml --tags deploy", "ansible-playbook site.yml --skip-tags debug"], validation: "Solo las tareas etiquetadas con 'deploy' se ejecutan al usar --tags deploy.", commonErrors: ["Poner tags en el play entero en lugar de en tareas individuales", "No saber que la etiqueta 'always' se ejecuta siempre independientemente de --tags", "Confundir --tags con --limit que filtra hosts, no tareas"] },
+          { id: 12, title: "Configurar cron jobs con Ansible", category: "Módulos", difficulty: "básico", context: "Debes programar un backup diario de base de datos a las 2:00 AM en todos los servidores de base de datos.", objective: "Usar el módulo cron para crear una tarea programada de backup idempotente.", steps: ["Crear playbook cron.yml apuntando a dbservers con become: true", "Añadir tarea con módulo cron: name, minute: '0', hour: '2', job: '/usr/local/bin/backup.sh'", "Ejecutar: ansible-playbook cron.yml", "Verificar: ansible dbservers -a 'crontab -l' --become", "Re-ejecutar para confirmar idempotencia (no debe crear duplicados)", "Para eliminar: state: absent con el mismo name y re-ejecutar"], recommendedCommands: ["ansible-playbook cron.yml", "ansible dbservers -a 'crontab -l' --become", "ansible-doc cron", "ansible-playbook cron.yml -v"], validation: "La tarea cron aparece en crontab con el horario correcto. Re-ejecutar el playbook no crea duplicados.", commonErrors: ["No especificar name: haciendo que se creen entradas duplicadas en cada ejecución", "No considerar la zona horaria del sistema al definir hora y minuto", "Olvidar especificar user: si la tarea debe ejecutarse como otro usuario"] },
+          { id: 13, title: "Organizar playbook con import_tasks", category: "Organización", difficulty: "medio", context: "Tu playbook site.yml tiene más de 100 tareas mezcladas. Debes reorganizarlo en archivos separados.", objective: "Dividir el playbook usando import_tasks e include_tasks para hacerlo mantenible.", steps: ["Crear archivos tasks/install.yml, tasks/configure.yml, tasks/security.yml", "Mover tareas de instalación a tasks/install.yml y de configuración a tasks/configure.yml", "En site.yml usar import_tasks: tasks/install.yml con tags: [install]", "Para archivos dinámicos usar include_tasks: 'tasks/{{ entorno }}.yml'", "Verificar: ansible-playbook site.yml --list-tasks", "Ejecutar fase concreta: ansible-playbook site.yml --tags install"], recommendedCommands: ["ansible-playbook --syntax-check site.yml", "ansible-playbook site.yml --list-tasks", "ansible-playbook site.yml --tags install", "ansible-playbook site.yml -v"], validation: "El playbook se ejecuta igual pero organizado. Los tags heredados de import_tasks funcionan correctamente.", commonErrors: ["Usar include_tasks cuando se necesitan tags heredados (usar import_tasks en su lugar)", "Crear dependencias circulares entre archivos de tareas", "Olvidar que include_tasks no propaga tags del play padre a las tareas incluidas"] },
+          { id: 14, title: "Instalar y usar colección community.general", category: "Colecciones", difficulty: "medio", context: "Necesitas usar el módulo 'ini_file' de community.general para editar archivos de configuración INI.", objective: "Crear requirements.yml con la colección, instalarla y usarla con FQCN en un playbook.", steps: ["Crear requirements.yml con sección collections:", "Añadir: - name: community.general con version: '>=7.0.0'", "Instalar: ansible-galaxy collection install -r requirements.yml", "Verificar: ansible-galaxy collection list | grep community.general", "En el playbook usar FQCN: community.general.ini_file", "Ejecutar y verificar que el módulo funciona correctamente"], recommendedCommands: ["ansible-galaxy collection install -r requirements.yml", "ansible-galaxy collection list", "ansible-doc community.general.ini_file", "ansible-playbook site.yml -v"], validation: "La colección está instalada. El módulo ini_file funciona correctamente referenciado por FQCN.", commonErrors: ["No usar FQCN causando conflictos de nombres con módulos builtin", "No especificar versión en requirements.yml para entornos reproducibles", "Instalar la colección en un directorio no incluido en collections_paths"] },
+          { id: 15, title: "Editar configuración con lineinfile y blockinfile", category: "Módulos", difficulty: "medio", context: "Debes configurar sshd_config para deshabilitar PasswordAuthentication y añadir configuraciones personalizadas.", objective: "Usar lineinfile para parámetros individuales y blockinfile para bloques de configuración.", steps: ["Crear playbook ssh_config.yml con become: true", "Usar lineinfile: regexp: '^PasswordAuthentication', line: 'PasswordAuthentication no'", "Usar lineinfile: regexp: '^PermitRootLogin', line: 'PermitRootLogin no'", "Usar blockinfile con marker personalizado para añadir bloque de configuración", "Añadir handler para reiniciar sshd tras los cambios", "Ejecutar con --check --diff para ver cambios antes de aplicar"], recommendedCommands: ["ansible-playbook ssh_config.yml --check --diff", "ansible-playbook ssh_config.yml", "ansible all -a 'sshd -T | grep passwordauth'", "ansible-doc lineinfile"], validation: "sshd_config contiene los valores correctos sin entradas duplicadas al re-ejecutar.", commonErrors: ["No definir regexp en lineinfile, añadiendo líneas duplicadas en cada ejecución", "Regex incorrecto que no coincide con la línea existente", "Olvidar el handler para reiniciar sshd después de los cambios"] },
+          { id: 16, title: "Referencias cruzadas entre hosts con hostvars", category: "Variables", difficulty: "avanzado", context: "Al configurar un balanceador nginx, necesitas las IPs de todos los webservers en nginx.conf.", objective: "Usar hostvars y groups en un template Jinja2 para generar la configuración del balanceador dinámicamente.", steps: ["Verificar que gather_facts: true está activo (por defecto)", "Crear template templates/nginx.conf.j2 con bloque upstream", "Iterar con: {% for host in groups['webservers'] %}", "Acceder a la IP: {{ hostvars[host]['ansible_default_ipv4']['address'] }}", "Usar módulo template para desplegar nginx.conf en el balanceador", "Verificar: ansible loadbalancer -a 'nginx -t'"], recommendedCommands: ["ansible-playbook site.yml --check --diff", "ansible all -m setup -a 'filter=ansible_default_ipv4'", "ansible loadbalancer -a 'cat /etc/nginx/nginx.conf'", "ansible-playbook site.yml -v"], validation: "nginx.conf contiene las IPs reales de todos los webservers y se regenera si cambia el inventario.", commonErrors: ["Acceder a hostvars de un host que no ha ejecutado gather_facts aún", "Usar ansible_host en lugar de ansible_default_ipv4.address para la IP real del sistema", "No iterar correctamente sobre groups['webservers'] en el template"] },
+          { id: 17, title: "Usar delegate_to para registrar hosts en balanceador", category: "Playbooks", difficulty: "avanzado", context: "Antes de actualizar servidores web debes registrarlos como 'en mantenimiento' llamando a una API REST desde el control node.", objective: "Usar delegate_to: localhost para hacer llamadas HTTP mientras se procesan los hosts.", steps: ["Crear play apuntando a webservers", "Añadir tarea con módulo uri para la API de monitorización", "Añadir delegate_to: localhost en esa tarea", "Usar {{ inventory_hostname }} en la llamada (referencia al host siendo procesado)", "Añadir las tareas de actualización sin delegate_to", "Añadir tarea final con delegate_to: localhost para re-registrar el host"], recommendedCommands: ["ansible-playbook maintenance.yml -v", "ansible-playbook maintenance.yml --check", "ansible-playbook maintenance.yml --limit 'webservers[0]'  # probar con un host", "ansible-doc uri"], validation: "Cada host se registra en mantenimiento antes de actualizarse. La API recibe inventory_hostname correcto.", commonErrors: ["Olvidar que inventory_hostname mantiene el host original aunque la tarea se ejecute en localhost", "No usar run_once: true para tareas de setup que solo deben ejecutarse una vez", "Confundir delegate_to con when: que solo condiciona la ejecución sin cambiar el host"] },
+          { id: 18, title: "Rolling update con serial sin downtime", category: "Playbooks", difficulty: "avanzado", context: "Tienes 20 servidores web en producción y debes actualizar la aplicación sin downtime completo.", objective: "Usar serial para actualizar en lotes, controlando la tolerancia a fallos con max_fail_percentage.", steps: ["Añadir serial: 2 al play (o serial: '10%')", "Añadir pre_tasks para desregistrar el host del balanceador", "Añadir las tareas de actualización: dnf update, systemctl restart", "Añadir post_tasks para re-registrar el host en el balanceador", "Añadir max_fail_percentage: 20 para detener si más del 20% falla", "Probar primero con --limit para un subconjunto"], recommendedCommands: ["ansible-playbook update.yml --limit webservers[0:2]", "ansible-playbook update.yml -v", "ansible-playbook update.yml --check", "ansible-playbook update.yml -e 'serial_count=1'"], validation: "Los hosts se actualizan de 2 en 2. El servicio permanece disponible durante la actualización.", commonErrors: ["No re-registrar el host en el balanceador en post_tasks", "serial demasiado grande dejando demasiados hosts sin servicio simultáneamente", "Olvidar que max_fail_percentage se evalúa al final de cada lote serial"] },
+          { id: 19, title: "Cifrar credenciales inline con encrypt_string", category: "Ansible Vault", difficulty: "medio", context: "Debes añadir una contraseña de base de datos directamente en group_vars sin crear un archivo vault separado.", objective: "Usar ansible-vault encrypt_string para cifrar la contraseña e incluirla inline en el archivo de variables.", steps: ["Ejecutar: ansible-vault encrypt_string 'MiContraseña' --name 'db_password'", "Copiar la salida completa (incluyendo '!vault |') al archivo group_vars/all/vars.yml", "Verificar: cat group_vars/all/vars.yml (debe mostrar el bloque cifrado)", "Referenciar {{ db_password }} normalmente en el playbook", "Ejecutar: ansible-playbook --ask-vault-pass site.yml", "Verificar: ansible all -m debug -a 'msg={{ db_password }}' --ask-vault-pass"], recommendedCommands: ["ansible-vault encrypt_string 'secreto' --name 'variable'", "ansible-playbook --ask-vault-pass site.yml", "ansible all -m debug -a 'msg={{ db_password }}' --ask-vault-pass", "ansible-vault view group_vars/all/vars.yml"], validation: "vars.yml contiene el string cifrado. El playbook accede correctamente a la variable con la contraseña.", commonErrors: ["No copiar toda la salida incluyendo 'variable: !vault |'", "Perder la indentación del string cifrado en YAML", "Usar contraseñas diferentes al cifrar distintas variables del mismo proyecto"] },
+          { id: 20, title: "Validar entorno con el módulo assert", category: "Validación", difficulty: "medio", context: "Antes de una migración de base de datos debes verificar que el entorno cumple requisitos mínimos.", objective: "Usar assert para validar versión de OS y espacio disponible antes de ejecutar la migración.", steps: ["Asegurar que gather_facts: true está activo para recopilar información del sistema", "Añadir tarea assert con lista de condiciones en that:", "Verificar OS: ansible_distribution == 'RedHat' and ansible_distribution_major_version | int >= 9", "Verificar espacio libre con ansible_mounts y selectattr", "Añadir fail_msg descriptivo indicando qué requisito no se cumple", "Ejecutar preflight.yml antes del playbook de migración"], recommendedCommands: ["ansible-playbook preflight.yml", "ansible-playbook preflight.yml --check", "ansible all -m setup -a 'filter=ansible_distribution*'", "ansible all -m setup -a 'filter=ansible_mounts'"], validation: "El play falla con mensaje descriptivo si no se cumplen los requisitos. Continúa si todo es correcto.", commonErrors: ["Condiciones de assert con problemas de tipo: comparar string con int sin conversión", "No añadir fail_msg descriptivo haciendo difícil entender el fallo", "Olvidar que assert con quiet: true no muestra mensaje de éxito"] }
         ],
         practiceCommands: [
           { id: 1, category: "Playbooks", title: "ansible-playbook - Ejecutar playbooks", command: "ansible-playbook -i inventory site.yml", prompt: "[student@control ~]$", description: "Ejecuta un playbook de Ansible contra el inventario especificado.", usage: "ansible-playbook [options] playbook.yml", examples: ["ansible-playbook site.yml", "ansible-playbook -i inventory site.yml", "ansible-playbook --check site.yml", "ansible-playbook --syntax-check site.yml", "ansible-playbook -v site.yml"], simulatedOutput: `PLAY [webservers] **************************************************************
@@ -388,7 +452,243 @@ EXAMPLES
            Display current ansible.cfg contents.
 
 SEE ALSO
-       ansible(1)` }
+       ansible(1)` },
+          { id: 9, category: "Tags", title: "ansible-playbook --tags - Ejecutar por tags", command: "ansible-playbook site.yml --tags install", prompt: "[student@control ~]$", description: "Ejecuta solo las tareas etiquetadas con 'install' en el playbook.", usage: "ansible-playbook [--tags TAGS] [--skip-tags TAGS] playbook.yml", examples: ["ansible-playbook site.yml --tags install", "ansible-playbook site.yml --tags 'install,configure'", "ansible-playbook site.yml --skip-tags debug", "ansible-playbook site.yml --list-tags"], simulatedOutput: `PLAY [webservers] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [server1.example.com]
+
+TASK [Install Apache] **********************************************************
+changed: [server1.example.com]
+
+TASK [Install PHP] *************************************************************
+changed: [server1.example.com]
+
+PLAY RECAP *********************************************************************
+server1.example.com : ok=3  changed=2  unreachable=0  failed=0  skipped=4`, manPage: `ANSIBLE-PLAYBOOK(1)
+
+TAGS OPTIONS
+       --tags TAGS
+           Only run plays and tasks tagged with these values.
+           Multiple tags: --tags 'tag1,tag2'
+
+       --skip-tags TAGS
+           Only run plays and tasks whose tags do not match these values.
+
+       --list-tags
+           List all available tags.
+
+SPECIAL TAGS
+       always   Always execute, even with --tags other
+       never    Only execute when explicitly requested with --tags never
+       all      Execute all tasks (default behavior)
+
+EXAMPLES
+       ansible-playbook site.yml --tags install
+           Run only tasks tagged 'install'.
+
+       ansible-playbook site.yml --list-tags
+           Show all tags in the playbook.` },
+          { id: 10, category: "Ejecución", title: "ansible-playbook --limit - Limitar hosts", command: "ansible-playbook site.yml --limit webservers", prompt: "[student@control ~]$", description: "Restringe la ejecución a un subconjunto de hosts del inventario.", usage: "ansible-playbook --limit SUBSET playbook.yml", examples: ["ansible-playbook site.yml --limit server1.example.com", "ansible-playbook site.yml --limit webservers", "ansible-playbook site.yml --limit 'webservers:!server3'", "ansible-playbook site.yml --limit 'web*'"], simulatedOutput: `PLAY [all] *********************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [server1.example.com]
+ok: [server2.example.com]
+skipping: [db1.example.com]
+
+PLAY RECAP *********************************************************************
+server1.example.com : ok=4  changed=2  unreachable=0  failed=0
+server2.example.com : ok=4  changed=2  unreachable=0  failed=0`, manPage: `ANSIBLE-PLAYBOOK(1)
+
+LIMIT OPTIONS
+       -l SUBSET, --limit SUBSET
+           Further limit selected hosts to an additional pattern.
+
+PATTERN SYNTAX
+       host1          Specific host
+       group1         All hosts in group
+       host1,host2    Multiple specific hosts
+       group1:group2  Union of two groups
+       group1:!host1  Group excluding a host
+       web*           Wildcard matching
+
+EXAMPLES
+       ansible-playbook site.yml --limit server1
+           Run only on server1.
+
+       ansible-playbook site.yml -l 'webservers:!server3'
+           Run on webservers group except server3.` },
+          { id: 11, category: "Ansible Vault", title: "ansible-vault encrypt_string - Cifrar string inline", command: "ansible-vault encrypt_string 'MiSecreto' --name 'db_password'", prompt: "[student@control ~]$", description: "Cifra una cadena de texto para usarla directamente en archivos YAML de variables.", usage: "ansible-vault encrypt_string [options] string_to_encrypt", examples: ["ansible-vault encrypt_string 'password' --name 'db_pass'", "ansible-vault encrypt_string --ask-vault-pass 'secreto' --name 'var'", "ansible-vault encrypt_string --vault-password-file .vault_pass 'secreto' --name 'var'"], simulatedOutput: `New Vault password:
+Confirm New Vault password:
+db_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          66386439653236336462626566653439376131353064316235313766313435313663313961393837
+          6531663837623865663538656561326239393939303561340a313131623533393139373736643634
+          32393431353730316265313061623835383533396164396532376366633139633331353937333332
+          3430363631393961650a666135653964373663383533663432313433353338353266343034613938
+          3465
+Encryption successful`, manPage: `ANSIBLE-VAULT(1)
+
+NAME
+       ansible-vault encrypt_string - Encrypt a string
+
+SYNOPSIS
+       ansible-vault encrypt_string [options] string_to_encrypt
+
+OPTIONS
+       --name ENCRYPT_STRING_NAMES
+           The variable name used in the output YAML.
+
+       --ask-vault-pass
+           Ask for vault password interactively.
+
+       --vault-password-file FILE
+           Use file as vault password.
+
+USAGE
+       Copy the output directly into your YAML vars file.
+       The !vault | tag tells Ansible to decrypt the value.
+
+EXAMPLES
+       ansible-vault encrypt_string 'secreto' --name 'my_password'
+           Encrypt string and output ready-to-paste YAML.` },
+          { id: 12, category: "Colecciones", title: "ansible-galaxy collection - Gestionar colecciones", command: "ansible-galaxy collection install community.general", prompt: "[student@control ~]$", description: "Instala la colección community.general desde Ansible Galaxy.", usage: "ansible-galaxy collection {install|list|init} [options]", examples: ["ansible-galaxy collection install community.general", "ansible-galaxy collection install -r requirements.yml", "ansible-galaxy collection list", "ansible-galaxy collection install amazon.aws:==5.0.0"], simulatedOutput: `Starting galaxy collection install process
+Process install dependency map
+Starting collection install process
+Downloading https://galaxy.ansible.com/download/community-general-7.5.0.tar.gz
+Installing 'community.general:7.5.0' to '/home/student/.ansible/collections/ansible_collections/community/general'
+community.general:7.5.0 was installed successfully`, manPage: `ANSIBLE-GALAXY(1)
+
+COLLECTION COMMANDS
+       install    Install collection(s) from Galaxy or a tar.gz.
+       list       Show installed collections and their versions.
+       init       Create a new collection skeleton.
+       build      Build an Ansible collection artifact.
+       publish    Publish to Galaxy.
+
+OPTIONS
+       -r REQUIREMENTS_FILE  Install from requirements.yml.
+       -p COLLECTIONS_PATH   The path to install collections.
+
+REQUIREMENTS.YML EXAMPLE
+       collections:
+         - name: community.general
+           version: ">=7.0.0"
+         - name: amazon.aws
+           version: "5.0.0"
+
+EXAMPLES
+       ansible-galaxy collection install community.general
+       ansible-galaxy collection list` },
+          { id: 13, category: "Playbooks", title: "ansible-playbook --list-tags - Listar tags", command: "ansible-playbook site.yml --list-tags", prompt: "[student@control ~]$", description: "Lista todos los tags disponibles en un playbook sin ejecutarlo.", usage: "ansible-playbook --list-tags playbook.yml", examples: ["ansible-playbook site.yml --list-tags", "ansible-playbook site.yml --list-tasks", "ansible-playbook site.yml --list-hosts"], simulatedOutput: `playbook: site.yml
+
+  play #1 (webservers): Configure Web Servers  TAGS: []
+      TASK TAGS: [configure, deploy, install, security]
+
+  play #2 (dbservers): Configure Database Servers  TAGS: []
+      TASK TAGS: [backup, configure, install]`, manPage: `ANSIBLE-PLAYBOOK(1)
+
+LISTING OPTIONS
+       --list-tags
+           List all available tags defined in the playbook.
+           Does not connect to any host.
+
+       --list-tasks
+           List all tasks that would be executed.
+
+       --list-hosts
+           Outputs a list of matching hosts; does not execute anything else.
+
+EXAMPLES
+       ansible-playbook site.yml --list-tags
+           Show all tags in playbook.
+
+       ansible-playbook site.yml --tags install --list-tasks
+           Show tasks that would run with --tags install.` },
+          { id: 14, category: "Playbooks", title: "ansible-playbook --diff - Ver cambios en archivos", command: "ansible-playbook site.yml --check --diff", prompt: "[student@control ~]$", description: "Muestra las diferencias exactas en archivos que serían modificados (diff mode).", usage: "ansible-playbook --diff [--check] playbook.yml", examples: ["ansible-playbook site.yml --diff", "ansible-playbook site.yml --check --diff", "ansible-playbook site.yml --diff --limit server1"], simulatedOutput: `TASK [Deploy httpd.conf] *******************************************************
+--- before: /etc/httpd/conf/httpd.conf
++++ after: /home/student/.ansible/tmp/httpd.conf
+@@ -1,5 +1,5 @@
+ ServerRoot "/etc/httpd"
+-Listen 80
++Listen 8080
+ Include conf.modules.d/*.conf
+ User apache
+ Group apache`, manPage: `ANSIBLE-PLAYBOOK(1)
+
+DIFF OPTIONS
+       -D, --diff
+           When changing (small) files and templates, show the differences in
+           those files; works great with --check.
+
+NOTES
+       --diff shows unified diff format for file changes.
+       Most useful combined with --check for dry-run previews.
+       Works with: copy, template, lineinfile, blockinfile modules.
+
+EXAMPLES
+       ansible-playbook site.yml --check --diff
+           Preview all file changes without applying them.` },
+          { id: 15, category: "Ad-hoc", title: "ansible --list-hosts - Listar hosts coincidentes", command: "ansible webservers --list-hosts", prompt: "[student@control ~]$", description: "Muestra la lista de hosts que coinciden con el patrón especificado sin ejecutar nada.", usage: "ansible <pattern> --list-hosts", examples: ["ansible all --list-hosts", "ansible webservers --list-hosts", "ansible 'web*' --list-hosts", "ansible 'webservers:!server3' --list-hosts"], simulatedOutput: `  hosts (3):
+    server1.example.com
+    server2.example.com
+    server3.example.com`, manPage: `ANSIBLE(1)
+
+NAME
+       ansible - run a task against a set of hosts
+
+LISTING OPTIONS
+       --list-hosts
+           Outputs a list of matching hosts; does not execute anything else.
+
+PATTERN EXAMPLES
+       all              All hosts
+       webservers       Group name
+       web*             Wildcard
+       web1,web2        Multiple hosts
+       web:db           Union of two groups
+       web:!server3     Group minus one host
+
+EXAMPLES
+       ansible all --list-hosts
+           List all hosts in the inventory.
+
+       ansible 'webservers:!server3' --list-hosts
+           List webservers excluding server3.` },
+          { id: 16, category: "Playbooks", title: "ansible-playbook --start-at-task - Reanudar desde tarea", command: "ansible-playbook site.yml --start-at-task 'Deploy configuration'", prompt: "[student@control ~]$", description: "Comienza la ejecución del playbook desde una tarea específica, saltando las anteriores.", usage: "ansible-playbook --start-at-task TASK_NAME playbook.yml", examples: ["ansible-playbook site.yml --start-at-task 'Deploy configuration'", "ansible-playbook site.yml --start-at-task 'Restart Apache'", "ansible-playbook site.yml --step  # modo interactivo paso a paso"], simulatedOutput: `PLAY [webservers] **************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [server1.example.com]
+
+Skipping previously run tasks...
+
+TASK [Deploy configuration] ****************************************************
+changed: [server1.example.com]
+
+TASK [Restart Apache] **********************************************************
+changed: [server1.example.com]
+
+PLAY RECAP *********************************************************************
+server1.example.com : ok=3  changed=2  unreachable=0  failed=0`, manPage: `ANSIBLE-PLAYBOOK(1)
+
+EXECUTION OPTIONS
+       --start-at-task START_AT_TASK
+           Start the playbook at the task matching this name.
+           Useful for resuming after a failure mid-playbook.
+
+       --step
+           One-step-at-a-time: confirm each task before running.
+
+NOTES
+       Skipped tasks still affect play execution context.
+       Use with caution: skipped tasks may leave system in inconsistent state.
+
+EXAMPLES
+       ansible-playbook site.yml --start-at-task 'Deploy app'
+           Resume playbook from the 'Deploy app' task.
+
+       ansible-playbook site.yml --step
+           Prompt before each task.` }
         ],
         consoleMissions: [
           { id: 1, title: "Verificar conectividad con ping", category: "Ad-hoc", prompt: "[student@control ~]$", mission: "Ejecuta un comando ad-hoc para verificar la conectividad con todos los hosts del inventario usando el módulo ping.", hints: ["Usa el comando ansible", "El patrón 'all' selecciona todos los hosts", "La opción -m especifica el módulo", "Prueba con: ansible-doc ping"], validCommands: ["ansible all -m ping", "ansible '*' -m ping", "ansible all -m ansible.builtin.ping"], manPages: { "ansible": `ANSIBLE(1)
@@ -534,7 +834,133 @@ EXAMPLES
 server2.example.com | CHANGED => {
     "changed": true,
     "msg": "Installed: httpd-2.4.51-7.el9.x86_64"
-}` }
+}` },
+          { id: 9, title: "Limitar ejecución a un host específico", category: "Ejecución", prompt: "[student@control ~]$", mission: "Ejecuta el playbook 'site.yml' limitando la ejecución únicamente al host 'server1.example.com'.", hints: ["Usa ansible-playbook con la opción --limit", "También se puede usar -l (forma corta)", "Prueba con: ansible-playbook --help | grep limit"], validCommands: ["ansible-playbook site.yml --limit server1.example.com", "ansible-playbook site.yml -l server1.example.com", "ansible-playbook --limit server1.example.com site.yml"], manPages: { "ansible-playbook": `ANSIBLE-PLAYBOOK(1)
+
+OPTIONS
+       -l SUBSET, --limit SUBSET
+           Further limit selected hosts to an additional pattern.
+
+EXAMPLES
+       ansible-playbook site.yml --limit server1
+       ansible-playbook site.yml -l 'webservers:!server3'` }, successMessage: "Playbook ejecutado solo en server1.example.com.", simulatedOutput: `PLAY [all] *****************************************************
+
+TASK [Gathering Facts] *****************************************
+ok: [server1.example.com]
+
+PLAY RECAP *****************************************************
+server1.example.com : ok=4  changed=2  unreachable=0  failed=0` },
+          { id: 10, title: "Listar tags disponibles en un playbook", category: "Tags", prompt: "[student@control ~]$", mission: "Lista todos los tags disponibles en el playbook 'site.yml' sin ejecutarlo.", hints: ["Usa ansible-playbook con --list-tags", "No se conecta a ningún host", "Prueba con: ansible-playbook --help | grep tags"], validCommands: ["ansible-playbook site.yml --list-tags", "ansible-playbook --list-tags site.yml"], manPages: { "ansible-playbook": `ANSIBLE-PLAYBOOK(1)
+
+LISTING OPTIONS
+       --list-tags
+           List all available tags. Does not connect to hosts.
+       --list-tasks
+           List all tasks that would be executed.` }, successMessage: "Lista de tags del playbook mostrada correctamente.", simulatedOutput: `playbook: site.yml
+
+  play #1 (webservers): Configure Web Servers  TAGS: []
+      TASK TAGS: [configure, deploy, install, security]` },
+          { id: 11, title: "Ejecutar solo tareas con tag 'install'", category: "Tags", prompt: "[student@control ~]$", mission: "Ejecuta el playbook 'site.yml' ejecutando únicamente las tareas etiquetadas con 'install'.", hints: ["Usa --tags con el nombre del tag", "Solo se ejecutarán las tareas que tengan ese tag", "Prueba con: ansible-playbook site.yml --list-tags primero"], validCommands: ["ansible-playbook site.yml --tags install", "ansible-playbook --tags install site.yml", "ansible-playbook site.yml --tags 'install'"], manPages: { "ansible-playbook": `ANSIBLE-PLAYBOOK(1)
+
+OPTIONS
+       --tags TAGS
+           Only run plays and tasks tagged with these values.
+       --skip-tags TAGS
+           Only run plays and tasks whose tags do not match these values.
+
+EXAMPLES
+       ansible-playbook site.yml --tags install
+       ansible-playbook site.yml --skip-tags debug` }, successMessage: "Solo las tareas con tag 'install' se ejecutaron.", simulatedOutput: `TASK [Install Apache] ******************************************
+changed: [server1.example.com]
+TASK [Install PHP] *********************************************
+changed: [server1.example.com]` },
+          { id: 12, title: "Cifrar string con ansible-vault", category: "Ansible Vault", prompt: "[student@control ansible-project]$", mission: "Cifra el string 'P@ssw0rd123' asignándole el nombre de variable 'db_password' usando ansible-vault.", hints: ["Usa ansible-vault encrypt_string", "El formato es: ansible-vault encrypt_string 'texto' --name 'nombre_var'", "Te pedirá una contraseña de vault", "Copia la salida completa a tu archivo de variables"], validCommands: ["ansible-vault encrypt_string 'P@ssw0rd123' --name 'db_password'"], manPages: { "ansible-vault": `ANSIBLE-VAULT(1)
+
+SUBCOMMANDS
+       encrypt_string  Encrypt a string for use in YAML vars.
+
+SYNOPSIS
+       ansible-vault encrypt_string [options] STRING
+
+OPTIONS
+       --name NAME    The variable name in the output YAML.
+
+EXAMPLES
+       ansible-vault encrypt_string 'secreto' --name 'my_var'` }, successMessage: "String cifrado generado en formato YAML listo para usar.", simulatedOutput: `New Vault password:
+Confirm New Vault password:
+db_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          66386439653236336462626566653439376131...
+Encryption successful` },
+          { id: 13, title: "Instalar colección de Ansible Galaxy", category: "Colecciones", prompt: "[student@control ansible-project]$", mission: "Instala todas las colecciones definidas en el archivo 'requirements.yml' usando ansible-galaxy.", hints: ["Usa ansible-galaxy collection install", "La opción -r especifica el archivo de requisitos", "Prueba con: ansible-galaxy collection --help"], validCommands: ["ansible-galaxy collection install -r requirements.yml", "ansible-galaxy collection install --requirements-file requirements.yml"], manPages: { "ansible-galaxy": `ANSIBLE-GALAXY(1)
+
+COLLECTION COMMANDS
+       install    Install collection(s).
+
+OPTIONS
+       -r FILE    Install from requirements.yml.
+       -p PATH    Installation path.
+
+EXAMPLES
+       ansible-galaxy collection install community.general
+       ansible-galaxy collection install -r requirements.yml` }, successMessage: "Colecciones de requirements.yml instaladas correctamente.", simulatedOutput: `Starting galaxy collection install process
+Installing 'community.general:7.5.0' to '~/.ansible/collections/...'
+community.general:7.5.0 was installed successfully` },
+          { id: 14, title: "Ver documentación de módulo con navigator", category: "ansible-navigator", prompt: "[student@control ~]$", mission: "Muestra la documentación del módulo 'template' usando ansible-navigator en modo stdout.", hints: ["Usa ansible-navigator doc", "Añade -m stdout para modo no interactivo", "Prueba con: ansible-navigator doc --help"], validCommands: ["ansible-navigator doc template -m stdout", "ansible-navigator doc ansible.builtin.template -m stdout"], manPages: { "ansible-navigator": `ANSIBLE-NAVIGATOR(1)
+
+SUBCOMMANDS
+       doc    Show documentation for an Ansible plugin.
+
+OPTIONS
+       -m, --mode  Mode: stdout or interactive (default).
+
+EXAMPLES
+       ansible-navigator doc dnf -m stdout
+       ansible-navigator doc ansible.builtin.template -m stdout` }, successMessage: "Documentación del módulo template mostrada en modo stdout.", simulatedOutput: `> ANSIBLE.BUILTIN.TEMPLATE
+
+        Templates a file out to a target host.
+
+OPTIONS (= is mandatory):
+= dest
+        Location to render the template to on the remote machine.
+= src
+        Path of a Jinja2 formatted template on the Ansible controller.` },
+          { id: 15, title: "Ejecutar playbook mostrando diffs", category: "Playbooks", prompt: "[student@control ~]$", mission: "Ejecuta el playbook 'site.yml' en modo check mostrando las diferencias exactas en los archivos que cambiarían.", hints: ["Usa --check con --diff juntos", "Muestra cambios sin aplicarlos", "Prueba con: ansible-playbook --help | grep diff"], validCommands: ["ansible-playbook site.yml --check --diff", "ansible-playbook --check --diff site.yml", "ansible-playbook -CD site.yml"], manPages: { "ansible-playbook": `ANSIBLE-PLAYBOOK(1)
+
+OPTIONS
+       --check    Dry-run: don't make changes.
+       -D, --diff Show unified diff for file changes.
+
+NOTES
+       Combine --check --diff to preview all file changes.
+       Works best with: copy, template, lineinfile, blockinfile.
+
+EXAMPLES
+       ansible-playbook site.yml --check --diff` }, successMessage: "Diferencias de archivos mostradas en formato diff sin aplicar cambios.", simulatedOutput: `TASK [Deploy httpd.conf] ************************************
+--- before: /etc/httpd/conf/httpd.conf
++++ after: /tmp/httpd.conf
+@@ -1,4 +1,4 @@
+-Listen 80
++Listen 8080` },
+          { id: 16, title: "Reanudar playbook desde una tarea concreta", category: "Playbooks", prompt: "[student@control ~]$", mission: "Reanuda la ejecución del playbook 'site.yml' empezando desde la tarea llamada 'Deploy configuration'.", hints: ["Usa --start-at-task con el nombre exacto de la tarea", "El nombre debe coincidir exactamente con el campo 'name:' de la tarea", "Prueba con: ansible-playbook site.yml --list-tasks para ver nombres"], validCommands: ["ansible-playbook site.yml --start-at-task 'Deploy configuration'"], manPages: { "ansible-playbook": `ANSIBLE-PLAYBOOK(1)
+
+OPTIONS
+       --start-at-task START_AT_TASK
+           Start the playbook at the task matching this name.
+           Useful to resume after a mid-playbook failure.
+
+       --step
+           One-step-at-a-time: confirm each task before running.
+
+EXAMPLES
+       ansible-playbook site.yml --start-at-task 'Deploy app'
+       ansible-playbook site.yml --list-tasks  # find task names` }, successMessage: "Playbook reanudado desde la tarea 'Deploy configuration'.", simulatedOutput: `Skipping previously run tasks...
+
+TASK [Deploy configuration] ****************************
+changed: [server1.example.com]
+
+TASK [Restart Apache] **********************************
+changed: [server1.example.com]` }
         ],
         livePracticeTasks: [
           { id: 1, title: "Verificar conectividad ad-hoc", category: "Ad-hoc", task: "Ejecuta un comando ad-hoc para verificar conectividad con el grupo 'webservers' usando el módulo ping.", hints: ["ansible webservers -m ping", "Usa 'all' para todos los hosts"], validCommands: ["ansible webservers -m ping", "ansible webservers -m ansible.builtin.ping"], solution: "ansible webservers -m ping" },
