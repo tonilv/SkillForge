@@ -2612,8 +2612,10 @@ async function adminSendAnnouncementEmail() {
     statusEl.textContent = data.error;
     statusEl.className = 'auth-error';
   } else {
-    statusEl.textContent = `Email enviado: ${data.sent} entregados, ${data.failed} fallidos (${data.total} usuarios).`;
-    statusEl.className = 'auth-success';
+    const base = `Email enviado: ${data.sent} entregados, ${data.failed} fallidos (${data.total} usuarios).`;
+    const extra = data.firstError ? ` Error: ${data.firstError}` : '';
+    statusEl.textContent = base + extra;
+    statusEl.className = data.failed > 0 ? 'auth-error' : 'auth-success';
   }
 }
 

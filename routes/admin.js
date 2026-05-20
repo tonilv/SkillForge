@@ -147,8 +147,17 @@ router.post('/announcement/send', async (req, res) => {
     </div>
   `;
 
+  // Verify SMTP connection first
+  try {
+    await transporter.verify();
+  } catch (err) {
+    console.error('SMTP verify failed:', err);
+    return res.status(503).json({ error: `Error de conexión SMTP: ${err.message}` });
+  }
+
   let sent = 0;
   let failed = 0;
+  let firstError = null;
   for (const user of users) {
     try {
       await transporter.sendMail({
@@ -161,11 +170,12 @@ router.post('/announcement/send', async (req, res) => {
       sent++;
     } catch (err) {
       console.error(`Email fallido para ${user.email}:`, err.message);
+      if (!firstError) firstError = err.message;
       failed++;
     }
   }
 
-  res.json({ ok: true, sent, failed, total: users.length });
+  res.json({ ok: true, sent, failed, total: users.length, firstError });
 });
 
 // Announcement management
