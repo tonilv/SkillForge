@@ -36,6 +36,20 @@ app.use('/api/data', require('./routes/data'));
 app.use('/api/content', require('./routes/content'));
 app.use('/api/admin', require('./routes/admin'));
 
+// Public: active announcement (no auth required)
+app.get('/api/announcement', async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT value FROM app_settings WHERE key = 'announcement'`);
+    if (!result.rows[0]) return res.json({ announcement: null });
+    const val = result.rows[0].value;
+    if (!val || !val.enabled || !val.text) return res.json({ announcement: null });
+    res.json({ announcement: val.text });
+  } catch (err) {
+    console.error(err);
+    res.json({ announcement: null });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });

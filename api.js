@@ -104,6 +104,10 @@ const API = {
   updateUser: (id, data) => apiReq('PATCH', `/admin/users/${id}`, data),
   deleteUser: (id) => apiReq('DELETE', `/admin/users/${id}`),
   resetUser2FA: (id) => apiReq('POST', `/admin/users/${id}/reset-2fa`),
+  saveAnnouncement: (text, enabled) => apiReq('PUT', '/admin/announcement', { text, enabled }),
+
+  // Public
+  getAnnouncement: () => fetch('/api/announcement').then(r => r.json()),
 
   saveTrustedDevice: setTrustedDeviceToken,
   clearTrustedDevice: clearTrustedDeviceToken,

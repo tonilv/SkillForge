@@ -102,4 +102,23 @@ router.delete('/users/:id', async (req, res) => {
   }
 });
 
+// Announcement management
+router.put('/announcement', async (req, res) => {
+  const { text, enabled } = req.body;
+  if (typeof text !== 'string') return res.status(400).json({ error: 'text requerido' });
+  const trimmed = text.trim().slice(0, 1000);
+  try {
+    await pool.query(
+      `INSERT INTO app_settings (key, value, updated_at)
+       VALUES ('announcement', $1, NOW())
+       ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()`,
+      [JSON.stringify({ text: trimmed, enabled: enabled !== false })]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error guardando anuncio' });
+  }
+});
+
 module.exports = router;

@@ -2553,6 +2553,61 @@ function showApp() {
   if (adminBtn) adminBtn.style.display = currentUser && currentUser.is_admin ? '' : 'none';
   const configBtn = document.getElementById('config-btn');
   if (configBtn) configBtn.style.display = currentUser ? '' : 'none';
+  loadAnnouncement();
+}
+
+// ── Announcement banner ─────────────────────────────────────────────────────
+async function loadAnnouncement() {
+  try {
+    const data = await API.getAnnouncement();
+    if (!data.announcement) { hideBanner(); return; }
+    const dismissed = localStorage.getItem('sf_announcement_dismissed');
+    if (dismissed === data.announcement) { hideBanner(); return; }
+    showBanner(data.announcement);
+  } catch { hideBanner(); }
+}
+
+function showBanner(text) {
+  const banner = document.getElementById('announcement-banner');
+  const textEl = document.getElementById('announcement-text');
+  if (!banner || !textEl) return;
+  textEl.textContent = text;
+  banner.style.display = 'flex';
+}
+
+function hideBanner() {
+  const banner = document.getElementById('announcement-banner');
+  if (banner) banner.style.display = 'none';
+}
+
+function dismissAnnouncement() {
+  const textEl = document.getElementById('announcement-text');
+  if (textEl) localStorage.setItem('sf_announcement_dismissed', textEl.textContent);
+  hideBanner();
+}
+
+// ── Admin: save announcement ─────────────────────────────────────────────────
+async function adminSaveAnnouncement() {
+  const text = document.getElementById('announcement-input').value;
+  const enabled = document.getElementById('announcement-enabled').checked;
+  const statusEl = document.getElementById('announcement-status');
+  statusEl.textContent = '';
+
+  const data = await API.saveAnnouncement(text, enabled);
+  if (data.error) {
+    statusEl.textContent = data.error;
+    statusEl.className = 'auth-error';
+  } else {
+    statusEl.textContent = 'Anuncio guardado correctamente.';
+    statusEl.className = 'auth-success';
+    // Refresh banner in current session
+    if (enabled && text.trim()) {
+      localStorage.removeItem('sf_announcement_dismissed');
+      showBanner(text.trim());
+    } else {
+      hideBanner();
+    }
+  }
 }
 
 function switchAuthTab(tab) {
@@ -2853,15 +2908,20 @@ async function loadAllUserData() {
 
 async function renderAdminPanel() {
   const app = document.getElementById('app');
-  app.innerHTML = '<div class="admin-card"><p>Cargando usuarios...</p></div>';
+  app.innerHTML = '<div class="admin-card"><p>Cargando...</p></div>';
 
   let users = [];
+  let currentAnnouncement = { text: '', enabled: true };
   try {
-    const data = await API.getUsers();
-    if (data.error) { app.innerHTML = `<div class="admin-card"><p class="auth-error">${data.error}</p></div>`; return; }
-    users = data.users;
+    const [usersData, announcementData] = await Promise.all([
+      API.getUsers(),
+      API.getAnnouncement(),
+    ]);
+    if (usersData.error) { app.innerHTML = `<div class="admin-card"><p class="auth-error">${usersData.error}</p></div>`; return; }
+    users = usersData.users;
+    if (announcementData.announcement) currentAnnouncement.text = announcementData.announcement;
   } catch {
-    app.innerHTML = '<div class="admin-card"><p class="auth-error">Error al cargar usuarios.</p></div>';
+    app.innerHTML = '<div class="admin-card"><p class="auth-error">Error al cargar datos.</p></div>';
     return;
   }
 
@@ -2887,6 +2947,22 @@ async function renderAdminPanel() {
         <div id="admin-create-error" class="auth-error" style="display:none;"></div>
         <div id="admin-create-ok" class="auth-success" style="display:none;">Usuario creado. Deberá configurar 2FA al primer inicio de sesión.</div>
         <button class="btn btn-primary" onclick="adminCreateUser()">Crear usuario</button>
+      </div>
+
+      <div class="admin-create-form" style="margin-top:var(--space-lg);">
+        <h3>Mensaje de anuncio</h3>
+        <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:var(--space-sm);">
+          Este mensaje se muestra a todos los usuarios al entrar a la plataforma.
+        </p>
+        <div class="form-group">
+          <textarea id="announcement-input" class="form-input" rows="3"
+            placeholder="Escribe aquí el mensaje de aviso..." style="resize:vertical;width:100%;">${escapeHtml(currentAnnouncement.text)}</textarea>
+        </div>
+        <label class="admin-check-label" style="margin-bottom:var(--space-sm);">
+          <input type="checkbox" id="announcement-enabled" checked /> Mostrar anuncio actualmente
+        </label>
+        <div id="announcement-status" style="margin:var(--space-xs) 0;min-height:1.2em;"></div>
+        <button class="btn btn-primary" onclick="adminSaveAnnouncement()">Guardar anuncio</button>
       </div>
 
       <div class="admin-table-wrapper">
