@@ -1,9 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
 const { pool } = require('../db/db');
 const authMiddleware = require('../middleware/auth');
 const adminMiddleware = require('../middleware/admin');
+
+function createTransporter() {
+  return nodemailer.createTransport({
+    host: 'smtp-mail.outlook.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    tls: { ciphers: 'SSLv3' },
+  });
+}
 
 router.use(authMiddleware, adminMiddleware);
 
@@ -100,6 +114,58 @@ router.delete('/users/:id', async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Error eliminando usuario' });
   }
+});
+
+// Send announcement email to all active users
+router.post('/announcement/send', async (req, res) => {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return res.status(503).json({ error: 'Email no configurado. Añade SMTP_USER y SMTP_PASS en Railway.' });
+  }
+
+  // Get announcement text
+  const settingResult = await pool.query(`SELECT value FROM app_settings WHERE key = 'announcement'`);
+  if (!settingResult.rows[0]) return res.status(400).json({ error: 'No hay ningún anuncio guardado.' });
+  const ann = settingResult.rows[0].value;
+  if (!ann || !ann.text) return res.status(400).json({ error: 'El anuncio está vacío.' });
+
+  // Get all active users with email
+  const usersResult = await pool.query(`SELECT email, display_name FROM users WHERE is_active = TRUE ORDER BY id ASC`);
+  const users = usersResult.rows;
+  if (!users.length) return res.status(400).json({ error: 'No hay usuarios activos.' });
+
+  const transporter = createTransporter();
+  const senderName = 'SkillForge';
+  const from = `"${senderName}" <${process.env.SMTP_USER}>`;
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+      <h2 style="color:#1d4ed8;margin-bottom:8px;">SkillForge</h2>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin-bottom:24px;">
+      <p style="font-size:16px;line-height:1.6;color:#111827;">${ann.text.replace(/\n/g, '<br>')}</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin-top:24px;">
+      <p style="font-size:12px;color:#9ca3af;">Has recibido este mensaje porque tienes una cuenta en SkillForge.</p>
+    </div>
+  `;
+
+  let sent = 0;
+  let failed = 0;
+  for (const user of users) {
+    try {
+      await transporter.sendMail({
+        from,
+        to: user.email,
+        subject: `[SkillForge] Aviso importante`,
+        text: ann.text,
+        html,
+      });
+      sent++;
+    } catch (err) {
+      console.error(`Email fallido para ${user.email}:`, err.message);
+      failed++;
+    }
+  }
+
+  res.json({ ok: true, sent, failed, total: users.length });
 });
 
 // Announcement management

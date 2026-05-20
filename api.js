@@ -105,6 +105,7 @@ const API = {
   deleteUser: (id) => apiReq('DELETE', `/admin/users/${id}`),
   resetUser2FA: (id) => apiReq('POST', `/admin/users/${id}/reset-2fa`),
   saveAnnouncement: (text, enabled) => apiReq('PUT', '/admin/announcement', { text, enabled }),
+  sendAnnouncement: () => apiReq('POST', '/admin/announcement/send'),
 
   // Public
   getAnnouncement: () => fetch('/api/announcement').then(r => r.json()),

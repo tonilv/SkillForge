@@ -2587,6 +2587,36 @@ function dismissAnnouncement() {
 }
 
 // ── Admin: save announcement ─────────────────────────────────────────────────
+async function adminSendAnnouncementEmail() {
+  const text = document.getElementById('announcement-input').value.trim();
+  if (!text) {
+    alert('Escribe un mensaje antes de enviar.');
+    return;
+  }
+  if (!confirm(`¿Enviar este anuncio por email a todos los usuarios activos?\n\n"${text.slice(0, 120)}${text.length > 120 ? '…' : ''}"`)) return;
+
+  const btn = document.getElementById('send-email-btn');
+  const statusEl = document.getElementById('announcement-status');
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+  statusEl.textContent = '';
+
+  // Guardar primero para asegurar que el backend usa el texto actual
+  await API.saveAnnouncement(text, document.getElementById('announcement-enabled').checked);
+
+  const data = await API.sendAnnouncement();
+  btn.disabled = false;
+  btn.textContent = 'Enviar por email a todos';
+
+  if (data.error) {
+    statusEl.textContent = data.error;
+    statusEl.className = 'auth-error';
+  } else {
+    statusEl.textContent = `Email enviado: ${data.sent} entregados, ${data.failed} fallidos (${data.total} usuarios).`;
+    statusEl.className = 'auth-success';
+  }
+}
+
 async function adminSaveAnnouncement() {
   const text = document.getElementById('announcement-input').value;
   const enabled = document.getElementById('announcement-enabled').checked;
@@ -2962,7 +2992,10 @@ async function renderAdminPanel() {
           <input type="checkbox" id="announcement-enabled" checked /> Mostrar anuncio actualmente
         </label>
         <div id="announcement-status" style="margin:var(--space-xs) 0;min-height:1.2em;"></div>
-        <button class="btn btn-primary" onclick="adminSaveAnnouncement()">Guardar anuncio</button>
+        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="adminSaveAnnouncement()">Guardar anuncio</button>
+          <button class="btn btn-secondary" id="send-email-btn" onclick="adminSendAnnouncementEmail()">Enviar por email a todos</button>
+        </div>
       </div>
 
       <div class="admin-table-wrapper">
